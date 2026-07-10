@@ -1,0 +1,28 @@
+using JeeBeginner.Models.Encryption;
+
+namespace JeeBeginner.Services.Encryption
+{
+    public interface IEncryptionService
+    {
+        string EncryptAes(string plainText);
+        string DecryptAes(string cipherText);
+
+        string EncryptRsa(string plainText);
+        string DecryptRsa(string cipherText);
+
+        string EncryptFpeDigits(string plainText);
+        string DecryptFpeDigits(string cipherText);
+
+        string EncryptFpeAlphaNumeric(string plainText);
+        string DecryptFpeAlphaNumeric(string cipherText);
+
+        NhanVienCryptoModel EncryptNhanVienAes(NhanVienCryptoModel model);
+        NhanVienCryptoModel DecryptNhanVienAes(NhanVienCryptoModel model);
+
+        NhanVienCryptoModel EncryptNhanVienRsa(NhanVienCryptoModel model);
+        NhanVienCryptoModel DecryptNhanVienRsa(NhanVienCryptoModel model);
+
+        NhanVienCryptoModel EncryptNhanVienFpe(NhanVienCryptoModel model);
+        NhanVienCryptoModel DecryptNhanVienFpe(NhanVienCryptoModel model);
+    }
+}
