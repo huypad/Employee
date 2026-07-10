@@ -2,3 +2,5 @@
 /obj
 /.config
 .env
+Logs/*.csv
+!Logs/.gitkeep
