@@ -6,6 +6,7 @@ using JeeBeginner.Services;
 using JeeBeginner.Services.AccountManagement;
 using JeeBeginner.Services.Authorization;
 using JeeBeginner.Services.CustomerManagement;
+using JeeBeginner.Services.Encryption;
 using JeeBeginner.Services.PartnerManagement;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -101,6 +102,7 @@ namespace JeeBeginner
             services.AddTransient<IAccountManagementService, AccountManagementService>();
             services.AddTransient<ICustomAuthorizationService, CustomAuthorizationService>();
             services.AddTransient<ICustomerManagementService, CustomerManagementService>();
+            services.AddTransient<IEncryptionService, EncryptionService>();
             #endregion add service
         }
 
