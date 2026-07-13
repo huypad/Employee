@@ -1,0 +1,4 @@
+bin/
+obj/
+Logs/*.csv
+!Logs/.gitkeep
