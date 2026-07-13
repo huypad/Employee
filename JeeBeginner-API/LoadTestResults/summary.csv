@@ -1,0 +1,13 @@
+File,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,HttpMax,EncryptAvg,EncryptP95,DecryptAvg,DecryptP95
+results_aes_100vu.json,0,9000,3.54,12.33,60.33,3.93,13.59,3.14,10.75
+results_aes_200vu.json,0,18000,2.85,10.04,33.58,3.31,11.58,2.40,7.76
+results_aes_50vu.json,0,4500,2.82,7.99,25.76,3.22,8.92,2.42,6.54
+results_fpe_100vu.json,0,9000,3.03,7.69,25.69,3.83,8.47,2.24,5.51
+results_fpe_200vu.json,0,18000,3.40,12.14,57.96,3.74,13.73,3.06,9.14
+results_fpe_50vu.json,0,4350,21.34,5.71,1081.51,40.69,48.53,2.00,4.31
+results_plaintext_100vu.json,0,3000,1.98,5.54,11.93,-,-,-,-
+results_plaintext_200vu.json,0,6000,3.07,7.36,31.12,-,-,-,-
+results_plaintext_50vu.json,0,1500,3.16,7.76,14.13,-,-,-,-
+results_rsa_100vu.json,0,9000,8.05,27.50,96.04,8.20,27.76,7.90,26.76
+results_rsa_200vu.json,0,17619,14.73,38.56,77.80,16.33,39.68,13.13,36.39
+results_rsa_50vu.json,0,4500,8.39,24.33,112.37,10.52,26.51,6.27,17.22
