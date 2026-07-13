@@ -4,3 +4,4 @@
 .env
 Logs/*.csv
 !Logs/.gitkeep
+LoadTestResults/*.json
