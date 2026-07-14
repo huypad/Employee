@@ -14,24 +14,25 @@ namespace JeeBeginner.Services.Encryption
     {
         private const string AesPrefix = "AESGCM:v1";
         private const string RsaPrefix = "RSAHYBRID:v1";
+        private const string HmacSha256Prefix = "HMACSHA256:v1";
         private const int AesNonceSize = 12;
         private const int AesTagSize = 16;
         private const string DigitAlphabet = "0123456789";
         private const string AlphaNumericAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-        private static readonly Lazy<byte[]> LocalRsaPrivateKey = new Lazy<byte[]>(CreateLocalRsaPrivateKey);
-
         private readonly IConfiguration _configuration;
         private readonly byte[] _aesKey;
         private readonly byte[] _fpeKey;
         private readonly byte[] _fpeTweak;
+        private readonly byte[] _hmacKey;
 
         public EncryptionService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _aesKey = ResolveKey("Encryption:AesKey", 32);
-            _fpeKey = ResolveKey("Encryption:FpeKey", 32);
+            _aesKey = ResolveRequiredBase64Key("Encryption:AesKey", 32);
+            _fpeKey = ResolveRequiredBase64Key("Encryption:FpeKey", 32);
             _fpeTweak = ResolveTweak();
+            _hmacKey = ResolveRequiredBase64Key("Encryption:HmacKey", 32);
         }
 
         public string EncryptAes(string plainText)
@@ -142,6 +143,21 @@ namespace JeeBeginner.Services.Encryption
             return Encoding.UTF8.GetString(plainBytes);
         }
 
+        public string HashHmacSha256(string plainText)
+        {
+            if (plainText == null) return null;
+
+            byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+            byte[] hashBytes;
+            using (HMACSHA256 hmac = new HMACSHA256(_hmacKey))
+            {
+                hashBytes = hmac.ComputeHash(plainBytes);
+            }
+
+            return $"{HmacSha256Prefix}:{Convert.ToBase64String(hashBytes)}";
+        }
+
+
         public string EncryptFpeDigits(string plainText)
         {
             return ProcessFpe(plainText, DigitAlphabet, true);
@@ -168,14 +184,16 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = model.MaNV,
-                HoTen = EncryptAes(model.HoTen),
-                SDT = EncryptAes(model.SDT),
-                CCCD = EncryptAes(model.CCCD),
-                Email = EncryptAes(model.Email),
-                DiaChi = EncryptAes(model.DiaChi),
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = model.I_CMND,
+                I_Sotaikhoan = model.I_Sotaikhoan,
+                Holot_Enc = EncryptAes(model.I_Holot),
+                Ten_Enc = EncryptAes(model.I_Ten),
+                CMND_Enc = EncryptAes(model.I_CMND),
+                Sotaikhoan_Enc = EncryptAes(model.I_Sotaikhoan),
+                CMNDHash = HashHmacSha256(model.I_CMND),
+                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
             };
         }
 
@@ -185,14 +203,16 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = model.MaNV,
-                HoTen = DecryptAes(model.HoTen),
-                SDT = DecryptAes(model.SDT),
-                CCCD = DecryptAes(model.CCCD),
-                Email = DecryptAes(model.Email),
-                DiaChi = DecryptAes(model.DiaChi),
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = DecryptAes(model.Holot_Enc),
+                I_Ten = DecryptAes(model.Ten_Enc),
+                I_CMND = DecryptAes(model.CMND_Enc),
+                I_Sotaikhoan = DecryptAes(model.Sotaikhoan_Enc),
+                Holot_Enc = model.Holot_Enc,
+                Ten_Enc = model.Ten_Enc,
+                CMND_Enc = model.CMND_Enc,
+                Sotaikhoan_Enc = model.Sotaikhoan_Enc,
+                CMNDHash = model.CMNDHash,
+                SotaikhoanHash = model.SotaikhoanHash
             };
         }
 
@@ -202,14 +222,16 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = model.MaNV,
-                HoTen = EncryptRsa(model.HoTen),
-                SDT = EncryptRsa(model.SDT),
-                CCCD = EncryptRsa(model.CCCD),
-                Email = EncryptRsa(model.Email),
-                DiaChi = EncryptRsa(model.DiaChi),
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = model.I_CMND,
+                I_Sotaikhoan = model.I_Sotaikhoan,
+                Holot_Enc = EncryptRsa(model.I_Holot),
+                Ten_Enc = EncryptRsa(model.I_Ten),
+                CMND_Enc = EncryptRsa(model.I_CMND),
+                Sotaikhoan_Enc = EncryptRsa(model.I_Sotaikhoan),
+                CMNDHash = HashHmacSha256(model.I_CMND),
+                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
             };
         }
 
@@ -219,14 +241,16 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = model.MaNV,
-                HoTen = DecryptRsa(model.HoTen),
-                SDT = DecryptRsa(model.SDT),
-                CCCD = DecryptRsa(model.CCCD),
-                Email = DecryptRsa(model.Email),
-                DiaChi = DecryptRsa(model.DiaChi),
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = DecryptRsa(model.Holot_Enc),
+                I_Ten = DecryptRsa(model.Ten_Enc),
+                I_CMND = DecryptRsa(model.CMND_Enc),
+                I_Sotaikhoan = DecryptRsa(model.Sotaikhoan_Enc),
+                Holot_Enc = model.Holot_Enc,
+                Ten_Enc = model.Ten_Enc,
+                CMND_Enc = model.CMND_Enc,
+                Sotaikhoan_Enc = model.Sotaikhoan_Enc,
+                CMNDHash = model.CMNDHash,
+                SotaikhoanHash = model.SotaikhoanHash
             };
         }
 
@@ -236,14 +260,16 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = EncryptFpeAlphaNumeric(model.MaNV),
-                HoTen = model.HoTen,
-                SDT = EncryptFpeDigits(model.SDT),
-                CCCD = EncryptFpeDigits(model.CCCD),
-                Email = model.Email,
-                DiaChi = model.DiaChi,
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = model.I_CMND,
+                I_Sotaikhoan = model.I_Sotaikhoan,
+                Holot_Enc = model.Holot_Enc,
+                Ten_Enc = model.Ten_Enc,
+                CMND_Enc = EncryptFpeDigits(model.I_CMND),
+                Sotaikhoan_Enc = EncryptFpeDigits(model.I_Sotaikhoan),
+                CMNDHash = HashHmacSha256(model.I_CMND),
+                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
             };
         }
 
@@ -253,17 +279,37 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                MaNV = DecryptFpeAlphaNumeric(model.MaNV),
-                HoTen = model.HoTen,
-                SDT = DecryptFpeDigits(model.SDT),
-                CCCD = DecryptFpeDigits(model.CCCD),
-                Email = model.Email,
-                DiaChi = model.DiaChi,
-                PhongBan = model.PhongBan,
-                ChucVu = model.ChucVu
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = DecryptFpeDigits(model.CMND_Enc),
+                I_Sotaikhoan = DecryptFpeDigits(model.Sotaikhoan_Enc),
+                Holot_Enc = model.Holot_Enc,
+                Ten_Enc = model.Ten_Enc,
+                CMND_Enc = model.CMND_Enc,
+                Sotaikhoan_Enc = model.Sotaikhoan_Enc,
+                CMNDHash = model.CMNDHash,
+                SotaikhoanHash = model.SotaikhoanHash
             };
         }
 
+        public NhanVienCryptoModel HashNhanVienHmacSha256(NhanVienCryptoModel model)
+        {
+            if (model == null) return null;
+            return new NhanVienCryptoModel
+            {
+                Id = model.Id,
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = model.I_CMND,
+                I_Sotaikhoan = model.I_Sotaikhoan,
+                Holot_Enc = model.Holot_Enc,
+                Ten_Enc = model.Ten_Enc,
+                CMND_Enc = model.CMND_Enc,
+                Sotaikhoan_Enc = model.Sotaikhoan_Enc,
+                CMNDHash = HashHmacSha256(model.I_CMND),
+                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
+            };
+        }
         private string ProcessFpe(string value, string alphabet, bool encrypt)
         {
             if (value == null) return null;
@@ -309,96 +355,100 @@ namespace JeeBeginner.Services.Encryption
             throw new ArgumentException("FPE FF1 can mien du lieu toi thieu 1,000,000. Hay truyen gia tri dai hon.");
         }
 
-        private byte[] ResolveKey(string configKey, int fallbackSize)
+        private byte[] ResolveRequiredBase64Key(string configKey, int expectedSize)
         {
-            string configured = _configuration.GetValue<string>(configKey);
-            if (!string.IsNullOrWhiteSpace(configured))
+            byte[] key = ResolveRequiredBase64Value(configKey);
+            if (key.Length != expectedSize)
             {
-                try
-                {
-                    byte[] key = Convert.FromBase64String(configured);
-                    if (key.Length == 16 || key.Length == 24 || key.Length == 32)
-                    {
-                        return key;
-                    }
-                }
-                catch (FormatException)
-                {
-                }
+                throw new InvalidOperationException($"Cau hinh {configKey} phai dai {expectedSize} bytes ({expectedSize * 8} bit). Hay cap nhat {ToEnvironmentKey(configKey)} trong file .env.");
             }
 
-            string seed = configured;
-            if (string.IsNullOrWhiteSpace(seed))
-            {
-                seed = _configuration.GetValue<string>("JWT:Secret");
-            }
-            if (string.IsNullOrWhiteSpace(seed))
-            {
-                seed = "JeeBeginner.Local.Encryption.Key";
-            }
-
-            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(seed));
-            if (fallbackSize == hash.Length) return hash;
-
-            byte[] keyBytes = new byte[fallbackSize];
-            Array.Copy(hash, keyBytes, keyBytes.Length);
-            return keyBytes;
+            return key;
         }
 
         private byte[] ResolveTweak()
         {
-            string configured = _configuration.GetValue<string>("Encryption:FpeTweak");
+            return ResolveRequiredBase64Value("Encryption:FpeTweak");
+        }
+
+        private byte[] ResolveRequiredBase64Value(string configKey)
+        {
+            string configured = _configuration.GetValue<string>(configKey);
             if (string.IsNullOrWhiteSpace(configured))
             {
-                configured = "JeeBeginnerFpeTweak";
+                throw new InvalidOperationException($"Thieu cau hinh {configKey}. Hay them {ToEnvironmentKey(configKey)} vao file .env.");
             }
 
             try
             {
-                return Convert.FromBase64String(configured);
+                byte[] value = Convert.FromBase64String(configured);
+                if (value.Length == 0)
+                {
+                    throw new InvalidOperationException($"Cau hinh {configKey} khong duoc rong.");
+                }
+
+                return value;
             }
-            catch (FormatException)
+            catch (FormatException ex)
             {
-                return Encoding.UTF8.GetBytes(configured);
+                throw new InvalidOperationException($"Cau hinh {configKey} phai la chuoi Base64 hop le.", ex);
             }
+        }
+
+        private static string ToEnvironmentKey(string configKey)
+        {
+            return configKey.Replace(":", "__");
         }
 
         private RSA CreateRsaForEncryption()
         {
             string publicKey = _configuration.GetValue<string>("Encryption:RsaPublicKey");
-            if (!string.IsNullOrWhiteSpace(publicKey))
+            if (string.IsNullOrWhiteSpace(publicKey))
             {
-                RSA rsa = RSA.Create();
+                throw new InvalidOperationException("Thieu cau hinh Encryption:RsaPublicKey. Hay them Encryption__RsaPublicKey vao file .env.");
+            }
+
+            RSA rsa = RSA.Create();
+            try
+            {
                 rsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(publicKey), out _);
                 return rsa;
             }
-
-            RSA fallback = CreateRsaForDecryption();
-            byte[] publicKeyBytes = fallback.ExportSubjectPublicKeyInfo();
-            fallback.Dispose();
-
-            RSA publicRsa = RSA.Create();
-            publicRsa.ImportSubjectPublicKeyInfo(publicKeyBytes, out _);
-            return publicRsa;
+            catch (FormatException ex)
+            {
+                rsa.Dispose();
+                throw new InvalidOperationException("Cau hinh Encryption:RsaPublicKey phai la chuoi Base64 hop le.", ex);
+            }
+            catch (CryptographicException ex)
+            {
+                rsa.Dispose();
+                throw new InvalidOperationException("Cau hinh Encryption:RsaPublicKey khong dung dinh dang SubjectPublicKeyInfo.", ex);
+            }
         }
 
         private RSA CreateRsaForDecryption()
         {
             string privateKey = _configuration.GetValue<string>("Encryption:RsaPrivateKey");
-            byte[] privateKeyBytes = !string.IsNullOrWhiteSpace(privateKey)
-                ? Convert.FromBase64String(privateKey)
-                : LocalRsaPrivateKey.Value;
+            if (string.IsNullOrWhiteSpace(privateKey))
+            {
+                throw new InvalidOperationException("Thieu cau hinh Encryption:RsaPrivateKey. Hay them Encryption__RsaPrivateKey vao file .env.");
+            }
 
             RSA rsa = RSA.Create();
-            rsa.ImportPkcs8PrivateKey(privateKeyBytes, out _);
-            return rsa;
-        }
-
-        private static byte[] CreateLocalRsaPrivateKey()
-        {
-            using (RSA rsa = RSA.Create(2048))
+            try
             {
-                return rsa.ExportPkcs8PrivateKey();
+                rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(privateKey), out _);
+                return rsa;
+            }
+            catch (FormatException ex)
+            {
+                rsa.Dispose();
+                throw new InvalidOperationException("Cau hinh Encryption:RsaPrivateKey phai la chuoi Base64 hop le.", ex);
+            }
+            catch (CryptographicException ex)
+            {
+                rsa.Dispose();
+                throw new InvalidOperationException("Cau hinh Encryption:RsaPrivateKey khong dung dinh dang PKCS8 private key.", ex);
             }
         }
     }
