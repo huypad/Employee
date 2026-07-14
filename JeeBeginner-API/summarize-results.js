@@ -33,6 +33,7 @@ function analyzeFile(filePath) {
     http_req_duration: [],
     encrypt_duration_ms: [],
     decrypt_duration_ms: [],
+    hash_duration_ms: [],
   };
 
   let checksTotal = 0;
@@ -64,6 +65,7 @@ function analyzeFile(filePath) {
     httpReqDuration: summarizeMetric(metrics.http_req_duration),
     encryptDuration: summarizeMetric(metrics.encrypt_duration_ms),
     decryptDuration: summarizeMetric(metrics.decrypt_duration_ms),
+    hashDuration: summarizeMetric(metrics.hash_duration_ms),
     checksTotal,
     checksFailed,
   };
@@ -98,26 +100,28 @@ function main() {
     'Checks Fail'.padEnd(14) +
     'HTTP avg(ms)'.padEnd(14) +
     'HTTP p95(ms)'.padEnd(14) +
-    'Encrypt avg'.padEnd(14) +
+    'Encrypt/Hash avg'.padEnd(18) +
     'Decrypt avg'.padEnd(14)
   );
   console.log('='.repeat(120));
 
   for (const r of results) {
+    const primary = r.encryptDuration ?? r.hashDuration; // AES/RSA/FPE dùng encrypt, hash dùng hash_duration_ms
     console.log(
       r.file.padEnd(35) +
       `${r.checksFailed}/${r.checksTotal}`.padEnd(14) +
       fmt(r.httpReqDuration?.avg).padEnd(14) +
       fmt(r.httpReqDuration?.p95).padEnd(14) +
-      fmt(r.encryptDuration?.avg).padEnd(14) +
+      fmt(primary?.avg).padEnd(18) +
       fmt(r.decryptDuration?.avg).padEnd(14)
     );
   }
   console.log('='.repeat(120));
 
   // Xuất ra file CSV để mở bằng Excel dễ nhìn hơn
-  const csvLines = ['File,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,HttpMax,EncryptAvg,EncryptP95,DecryptAvg,DecryptP95'];
+  const csvLines = ['File,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,HttpMax,EncryptOrHashAvg,EncryptOrHashP95,DecryptAvg,DecryptP95'];
   for (const r of results) {
+    const primary = r.encryptDuration ?? r.hashDuration;
     csvLines.push([
       r.file,
       r.checksFailed,
@@ -125,8 +129,8 @@ function main() {
       fmt(r.httpReqDuration?.avg),
       fmt(r.httpReqDuration?.p95),
       fmt(r.httpReqDuration?.max),
-      fmt(r.encryptDuration?.avg),
-      fmt(r.encryptDuration?.p95),
+      fmt(primary?.avg),
+      fmt(primary?.p95),
       fmt(r.decryptDuration?.avg),
       fmt(r.decryptDuration?.p95),
     ].join(','));

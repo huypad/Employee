@@ -26,7 +26,7 @@ namespace PerformanceTestClient
         public static async Task Main(string[] args)
         {
             // Cách chạy: dotnet run -- <algorithm> <soLanGoi>
-            // Ví dụ:     dotnet run -- aes 20   → gọi AES 20 lần liên tiếp, đo từng lần
+            // Ví dụ:     dotnet run -- aes 20   => gọi AES 20 lần liên tiếp, đo từng lần
             string algorithm = args.Length > 0 ? args[0].ToLower() : "aes"; // plaintext / aes / rsa / fpe
             int soLanGoi = args.Length > 1 ? int.Parse(args[1]) : 20;
 
@@ -60,6 +60,19 @@ namespace PerformanceTestClient
                     continue;
                 }
 
+                //  HASH (HMAC-SHA256): chỉ 1 chiều, không có Decrypt vì hash không đảo ngược được 
+                if (algorithm == "hash")
+                {
+                    var swHash = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch
+                    var hashRes = await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName, value });
+                    swHash.Stop();
+
+                    LogResult("HMAC-SHA256", "Hash", Encoding.UTF8.GetByteCount(value), swHash.Elapsed.TotalMilliseconds, hashRes.IsSuccessStatusCode);
+                    encryptTimes.Add(swHash.Elapsed.TotalMilliseconds); // dùng chung danh sách encryptTimes để tính thống kê
+                    Console.WriteLine($"{swHash.Elapsed.TotalMilliseconds:F2} ms");
+                    continue;
+                }
+
                 //  ENCRYPT 
                 var swEncrypt = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch bắt đầu
                 var encryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName, value });
@@ -89,8 +102,9 @@ namespace PerformanceTestClient
                 Console.WriteLine($"Encrypt={swEncrypt.Elapsed.TotalMilliseconds:F2}ms  Decrypt={swDecrypt.Elapsed.TotalMilliseconds:F2}ms");
             }
 
-            PrintSummary("Encrypt", encryptTimes);
-            if (algorithm != "plaintext") PrintSummary("Decrypt", decryptTimes);
+            string tenThaoTac = algorithm == "hash" ? "Hash" : "Encrypt";
+            PrintSummary(tenThaoTac, encryptTimes);
+            if (algorithm != "plaintext" && algorithm != "hash") PrintSummary("Decrypt", decryptTimes);
 
             Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
         }

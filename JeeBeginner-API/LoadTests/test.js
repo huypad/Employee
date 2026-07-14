@@ -3,13 +3,13 @@ import { check, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 
 // CẤU HÌNH: chọn mức tải (LOAD_LEVEL) và thuật toán (ALGO) khi chạy
-//   k6 run --env LOAD_LEVEL=50 --env ALGO=aes  test.js
-//   k6 run --env LOAD_LEVEL=100 --env ALGO=rsa test.js
-//   k6 run --env LOAD_LEVEL=200 --env ALGO=fpe test.js
-// 
+//   k6 run --env LOAD_LEVEL=50 --env ALGO=aes   test.js
+//   k6 run --env LOAD_LEVEL=100 --env ALGO=rsa  test.js
+//   k6 run --env LOAD_LEVEL=200 --env ALGO=fpe  test.js
+//   k6 run --env LOAD_LEVEL=50  --env ALGO=hash test.js
 
 const LOAD_LEVEL = __ENV.LOAD_LEVEL || '50';
-const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe
+const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe / hash
 
 export const options = {
   scenarios: {
@@ -23,16 +23,18 @@ export const options = {
 
 const HOST = 'https://localhost:1404';
 
-// Custom metrics - tách riêng latency của Encrypt và Decrypt để so sánh
+// Custom metrics - tách riêng latency của từng loại thao tác để so sánh
 const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
+const hashTrend = new Trend('hash_duration_ms');
+
 
 // 4 loại field đại diện đủ tình huống: 2 field số (dùng FpeDigits)
 // và 2 field chữ/hỗn hợp (dùng FpeAlphaNumeric) - khớp đúng logic
 // IsDigitField() trong EncryptionTestController.cs
 const FIELD_GENERATORS = {
-  SDT: () => '09' + Math.floor(10000000 + Math.random() * 89999999), // 10 số
-  CCCD: () => String(Math.floor(100000000000 + Math.random() * 899999999999)), // 12 số
+  SDT: () => '09' + Math.floor(10000000 + Math.random() * 89999999),
+  CCCD: () => String(Math.floor(100000000000 + Math.random() * 899999999999)),
   HoTen: () => {
     const ho = ['Nguyen', 'Tran', 'Le', 'Pham', 'Hoang'];
     const ten = ['Van A', 'Thi B', 'Minh C', 'Quoc D', 'Thu E'];
@@ -56,7 +58,7 @@ function randomField() {
 function commonParams() {
   return {
     headers: { 'Content-Type': 'application/json' },
-    insecureSkipTLSVerify: true, // bỏ qua lỗi self-signed cert của localhost https
+    insecureSkipTLSVerify: true,
   };
 }
 
@@ -64,8 +66,7 @@ export default function () {
   const { fieldName, value } = randomField();
   const params = commonParams();
 
-  // TRƯỜNG HỢP PLAINTEXT: không có khái niệm encrypt/decrypt, chỉ có 1 endpoint
-
+  // TRƯỜNG HỢP PLAINTEXT: không mã hóa, chỉ 1 endpoint
   if (ALGO === 'plaintext') {
     const url = `${HOST}/api/encryptiontest/plaintext/field`;
     const res = http.post(url, JSON.stringify({ fieldName, value }), params);
@@ -74,7 +75,20 @@ export default function () {
     return;
   }
 
-  // BƯỚC 1: ENCRYPT - mã hóa dữ liệu, đo thời gian riêng
+  // TRƯỜNG HỢP HASH (HMAC-SHA256): CHỈ 1 CHIỀU, không có decrypt/round-trip
+  // vì hash không thể đảo ngược lại giá trị gốc theo đúng bản chất thuật toán
+  if (ALGO === 'hash') {
+    const url = `${HOST}/api/encryptiontest/hmacsha256/field/hash`;
+    const res = http.post(url, JSON.stringify({ fieldName, value }), params);
+
+    check(res, { 'hash status 200': (r) => r.status === 200 });
+    hashTrend.add(res.timings.duration, { algorithm: 'hash', field: fieldName });
+
+    sleep(1);
+    return;
+  }
+
+  // AES / RSA / FPE: có cả 2 chiều Encrypt + Decrypt
   const encryptUrl = `${HOST}/api/encryptiontest/${ALGO}/field/encrypt`;
   const encryptRes = http.post(encryptUrl, JSON.stringify({ fieldName, value }), params);
 
@@ -85,13 +99,12 @@ export default function () {
 
   if (!encryptOk) {
     sleep(1);
-    return; // không có bản mã hợp lệ thì không thể test decrypt tiếp
+    return;
   }
 
-  // Lấy bản mã (outputValue) vừa mã hóa được, dùng làm đầu vào cho bước decrypt
+  // Response bị bọc thêm 1 lớp { status, data } bởi JsonResultCommon.ThanhCong()
   const encryptedValue = JSON.parse(encryptRes.body).data.OutputValue;
 
-  // BƯỚC 2: DECRYPT - giải mã lại đúng giá trị vừa mã hóa, đo thời gian riêng
   const decryptUrl = `${HOST}/api/encryptiontest/${ALGO}/field/decrypt`;
   const decryptRes = http.post(decryptUrl, JSON.stringify({ fieldName, value: encryptedValue }), params);
 
@@ -110,13 +123,12 @@ export default function () {
   sleep(1);
 }
 
-// CÁCH CHẠY:
-//   k6 run --env LOAD_LEVEL=50  --env ALGO=aes --out json=results_aes_50vu.json  test.js
-//   k6 run --env LOAD_LEVEL=100 --env ALGO=aes --out json=results_aes_100vu.json test.js
-//   k6 run --env LOAD_LEVEL=200 --env ALGO=aes --out json=results_aes_200vu.json test.js
-// Đổi ALGO=rsa / fpe / plaintext để chạy các thuật toán còn lại.
+// CÁCH CHẠY (đủ 5 loại: plaintext, aes, rsa, fpe, hash):
+//   k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=results_hash_50vu.json  test.js
+//   k6 run --env LOAD_LEVEL=100 --env ALGO=hash --out json=results_hash_100vu.json test.js
+//   k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=results_hash_200vu.json test.js
+// (tương tự cho plaintext / aes / rsa / fpe)
 //
-// Kết quả in ra terminal sẽ có riêng 2 dòng:
-//   encrypt_duration_ms.......: avg=...
-//   decrypt_duration_ms.......: avg=...
-// → so sánh được ngay thời gian Encrypt vs Decrypt của từng thuật toán.
+// Kết quả in ra sẽ có dòng riêng:
+//   hash_duration_ms.......: avg=...
+// để so sánh Hash với Encrypt/Decrypt của AES/RSA/FPE.
