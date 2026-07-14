@@ -10,6 +10,7 @@ namespace JeeBeginner.Services.Encryption
         string EncryptRsa(string plainText);
         string DecryptRsa(string cipherText);
 
+        string HashHmacSha256(string plainText);
         string EncryptFpeDigits(string plainText);
         string DecryptFpeDigits(string cipherText);
 
@@ -24,5 +25,7 @@ namespace JeeBeginner.Services.Encryption
 
         NhanVienCryptoModel EncryptNhanVienFpe(NhanVienCryptoModel model);
         NhanVienCryptoModel DecryptNhanVienFpe(NhanVienCryptoModel model);
+
+        NhanVienCryptoModel HashNhanVienHmacSha256(NhanVienCryptoModel model);
     }
 }

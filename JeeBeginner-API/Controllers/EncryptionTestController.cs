@@ -49,6 +49,12 @@ namespace JeeBeginner.Controllers
             return ProcessField(request, "RSA", "DECRYPT", _encryptionService.DecryptRsa);
         }
 
+        [HttpPost("hmacsha256/field/hash")]
+        public object HashHmacSha256Field([FromBody] FieldCryptoRequest request)
+        {
+            return ProcessField(request, "HMAC-SHA256", "HASH", _encryptionService.HashHmacSha256);
+        }
+
         [HttpPost("fpe/field/encrypt")]
         public object EncryptFpeField([FromBody] FieldCryptoRequest request)
         {
@@ -101,6 +107,13 @@ namespace JeeBeginner.Controllers
         public object DecryptFpeNhanVien([FromBody] NhanVienCryptoModel request)
         {
             return ProcessNhanVien(request, "FPE", "DECRYPT", _encryptionService.DecryptNhanVienFpe);
+        }
+
+        
+        [HttpPost("hmacsha256/nhanvien/hash")]
+        public object HashHmacSha256NhanVien([FromBody] NhanVienCryptoModel request)
+        {
+            return ProcessNhanVien(request, "HMAC-SHA256", "HASH", _encryptionService.HashNhanVienHmacSha256);
         }
 
         private object ProcessField(FieldCryptoRequest request, string algorithm, string operation, Func<string, string> handler)
@@ -159,8 +172,12 @@ namespace JeeBeginner.Controllers
         private bool IsDigitField(string fieldName)
         {
             if (string.IsNullOrWhiteSpace(fieldName)) return false;
-            return fieldName.Equals("SDT", StringComparison.OrdinalIgnoreCase)
-                || fieldName.Equals("CCCD", StringComparison.OrdinalIgnoreCase);
+            return fieldName.Equals("CMND", StringComparison.OrdinalIgnoreCase)
+                || fieldName.Equals("I_CMND", StringComparison.OrdinalIgnoreCase)
+                || fieldName.Equals("CMND_Enc", StringComparison.OrdinalIgnoreCase)
+                || fieldName.Equals("Sotaikhoan", StringComparison.OrdinalIgnoreCase)
+                || fieldName.Equals("I_Sotaikhoan", StringComparison.OrdinalIgnoreCase)
+                || fieldName.Equals("Sotaikhoan_Enc", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
