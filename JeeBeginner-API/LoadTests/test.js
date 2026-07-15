@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
+import { SharedArray } from 'k6/data';
 
 // CẤU HÌNH: chọn mức tải (LOAD_LEVEL) và thuật toán (ALGO) khi chạy
 //   k6 run --env LOAD_LEVEL=50 --env ALGO=aes   test.js
@@ -28,31 +29,15 @@ const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
 const hashTrend = new Trend('hash_duration_ms');
 
+const testData = new SharedArray('test-data-200', function () {
+  return JSON.parse(open('./test-data-200.json'));
+});
 
-// 4 loại field đại diện đủ tình huống: 2 field số (dùng FpeDigits)
-// và 2 field chữ/hỗn hợp (dùng FpeAlphaNumeric) - khớp đúng logic
-// IsDigitField() trong EncryptionTestController.cs
-const FIELD_GENERATORS = {
-  SDT: () => '09' + Math.floor(10000000 + Math.random() * 89999999),
-  CCCD: () => String(Math.floor(100000000000 + Math.random() * 899999999999)),
-  HoTen: () => {
-    const ho = ['Nguyen', 'Tran', 'Le', 'Pham', 'Hoang'];
-    const ten = ['Van A', 'Thi B', 'Minh C', 'Quoc D', 'Thu E'];
-    return ho[Math.floor(Math.random() * ho.length)] + ' ' + ten[Math.floor(Math.random() * ten.length)];
-  },
-  DiaChi: () => {
-    const so = Math.floor(1 + Math.random() * 999);
-    const duong = ['Le Loi', 'Nguyen Trai', 'Tran Hung Dao', 'Hai Ba Trung'];
-    return `${so} ${duong[Math.floor(Math.random() * duong.length)]}, Q.1, TP.HCM`;
-  },
-};
-
-const FIELD_NAMES = Object.keys(FIELD_GENERATORS); // ['SDT', 'CCCD', 'HoTen', 'DiaChi']
-
-function randomField() {
-  const fieldName = FIELD_NAMES[Math.floor(Math.random() * FIELD_NAMES.length)];
-  const value = FIELD_GENERATORS[fieldName]();
-  return { fieldName, value };
+function pickRecord() {
+  // Chọn xoay vòng tuần tự (round-robin) theo __VU (số thứ tự VU) và __ITER (số lần lặp)
+  // thay vì random - đảm bảo tái lập được y hệt thứ tự dữ liệu qua nhiều lần chạy khác nhau
+  const idx = (__VU * 997 + __ITER) % testData.length;
+  return { fieldName: testData[idx].fieldName, value: testData[idx].value };
 }
 
 function commonParams() {
@@ -63,7 +48,7 @@ function commonParams() {
 }
 
 export default function () {
-  const { fieldName, value } = randomField();
+  const { fieldName, value } = pickRecord();
   const params = commonParams();
 
   // TRƯỜNG HỢP PLAINTEXT: không mã hóa, chỉ 1 endpoint

@@ -11,17 +11,12 @@ using System.Threading.Tasks;
 
 namespace PerformanceTestClient
 {
-    /// <summary>
-    /// CV3: Dùng System.Diagnostics.Stopwatch để đo thời gian Encrypt/Decrypt
-    /// khi gọi vào endpoint thật của CV2. Chạy TUẦN TỰ, KHÔNG mô phỏng tải đồng thời
-    /// (việc giả lập tải 50/100/200 request là của CV4, dùng K6, đã làm riêng ở đó).
-    /// </summary>
+
     public static class Program
     {
         private const string Host = "https://localhost:1404";
         private static readonly string LogFolder = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         private static readonly string LogFilePath = Path.Combine(LogFolder, "performance_log.csv");
-        private static readonly Random Rng = new Random();
 
         public static async Task Main(string[] args)
         {
@@ -39,13 +34,30 @@ namespace PerformanceTestClient
                 ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
             };
             using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(Host) };
+            
+            Console.WriteLine("Đang warm-up (không tính vào kết quả)...");
+            try
+            {
+                string warmupField = "CMND";
+                string warmupValue = "000000000000";
+
+                if (algorithm == "plaintext")
+                    await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName = warmupField, value = warmupValue });
+                else if (algorithm == "hash")
+                    await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName = warmupField, value = warmupValue });
+                else
+                    await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName = warmupField, value = warmupValue });
+            }
+            catch { /* bỏ qua lỗi warm-up nếu có */ }
+            Console.WriteLine("Warm-up xong, bắt đầu đo thật:\n");
+
 
             var encryptTimes = new List<double>();
             var decryptTimes = new List<double>();
 
             for (int i = 1; i <= soLanGoi; i++)
             {
-                var (fieldName, value) = RandomField();
+                var (fieldName, value) = GetRecord(i);
                 Console.Write($"Lần {i,3}/{soLanGoi} - field={fieldName,-8} ... ");
 
                 if (algorithm == "plaintext")
@@ -74,7 +86,7 @@ namespace PerformanceTestClient
                 }
 
                 //  ENCRYPT 
-                var swEncrypt = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch bắt đầu
+                var swEncrypt = Stopwatch.StartNew(); // System.Diagnostics.Stopwatch bắt đầu
                 var encryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName, value });
                 swEncrypt.Stop(); // ← dừng lại ngay khi có phản hồi
 
@@ -87,9 +99,30 @@ namespace PerformanceTestClient
                     continue;
                 }
 
+                // var body = await encryptRes.Content.ReadAsStringAsync();
+                // using var doc = JsonDocument.Parse(body);
+                // string encryptedValue = doc.RootElement.GetProperty("data").GetProperty("OutputValue").GetString();
                 var body = await encryptRes.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(body);
-                string encryptedValue = doc.RootElement.GetProperty("data").GetProperty("OutputValue").GetString();
+                string? encryptedValue = null;
+                try
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("data", out var dataEl) &&
+                        dataEl.TryGetProperty("OutputValue", out var outEl))
+                    {
+                        encryptedValue = outEl.GetString();
+                    }
+                }
+                catch (JsonException)
+                {
+                    // body không phải JSON hợp lệ, encryptedValue giữ nguyên null
+                }
+
+                if (encryptedValue == null)
+                {
+                    Console.WriteLine($"Encrypt trả về không đúng định dạng, bỏ qua Decrypt. Response: {body}");
+                    continue;
+                }
 
                 //  DECRYPT 
                 var swDecrypt = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch bắt đầu
@@ -109,21 +142,27 @@ namespace PerformanceTestClient
             Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
         }
 
-        private static (string fieldName, string value) RandomField()
+        // Đọc bộ dữ liệu giả lập cố định 200 dòng (dùng chung với K6),
+        // để tái lập được kết quả, so sánh công bằng giữa các lần chạy.
+        // File test-data-200.json cần đặt cùng thư mục với Program.cs
+        // (hoặc chỉ đường dẫn khác trong DataFilePath bên dưới).
+        private static readonly string DataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "test-data-200.json");
+        private static List<(string fieldName, string value)>? _testData;
+
+        private static (string fieldName, string value) GetRecord(int lanThu)
         {
-            var fields = new[] { "SDT", "CCCD", "HoTen", "DiaChi" };
-            var fieldName = fields[Rng.Next(fields.Length)];
-
-            string value = fieldName switch
+            if (_testData == null)
             {
-                "SDT" => "09" + Rng.Next(10000000, 99999999),
-                "CCCD" => Rng.NextInt64(100000000000, 899999999999).ToString(),
-                "HoTen" => "Nguyen Van " + (char)('A' + Rng.Next(26)),
-                "DiaChi" => $"{Rng.Next(1, 999)} Le Loi, Q.1, TP.HCM",
-                _ => "test"
-            };
+                var json = File.ReadAllText(DataFilePath);
+                using var doc = JsonDocument.Parse(json);
+                _testData = doc.RootElement.EnumerateArray()
+                    .Select(e => (e.GetProperty("fieldName").GetString()!, e.GetProperty("value").GetString()!))
+                    .ToList();
+            }
 
-            return (fieldName, value);
+            // Lấy tuần tự, xoay vòng nếu số lần gọi > 200 - đảm bảo tái lập được kết quả
+            int idx = (lanThu - 1) % _testData.Count;
+            return _testData[idx];
         }
 
         private static void EnsureLogFileExists()
@@ -144,6 +183,20 @@ namespace PerformanceTestClient
             File.AppendAllText(LogFilePath, line, Encoding.UTF8);
         }
 
+        // private static void PrintSummary(string operation, List<double> times)
+        // {
+        //     if (times.Count == 0)
+        //     {
+        //         Console.WriteLine($"[{operation}] Không có dữ liệu.");
+        //         return;
+        //     }
+
+        //     var sorted = times.OrderBy(x => x).ToArray();
+        //     Console.WriteLine($"\n=== {operation} - Thống kê ({sorted.Length} lần) ===");
+        //     Console.WriteLine($"Trung bình : {sorted.Average():F2} ms");
+        //     Console.WriteLine($"Nhỏ nhất   : {sorted.First():F2} ms");
+        //     Console.WriteLine($"Lớn nhất   : {sorted.Last():F2} ms");
+        // }
         private static void PrintSummary(string operation, List<double> times)
         {
             if (times.Count == 0)
@@ -153,8 +206,13 @@ namespace PerformanceTestClient
             }
 
             var sorted = times.OrderBy(x => x).ToArray();
+            double median = sorted.Length % 2 == 0
+                ? (sorted[sorted.Length / 2 - 1] + sorted[sorted.Length / 2]) / 2.0
+                : sorted[sorted.Length / 2];
+
             Console.WriteLine($"\n=== {operation} - Thống kê ({sorted.Length} lần) ===");
             Console.WriteLine($"Trung bình : {sorted.Average():F2} ms");
+            Console.WriteLine($"Trung vị   : {median:F2} ms   (ít bị lệch bởi outlier hơn Trung bình)");
             Console.WriteLine($"Nhỏ nhất   : {sorted.First():F2} ms");
             Console.WriteLine($"Lớn nhất   : {sorted.Last():F2} ms");
         }
