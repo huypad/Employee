@@ -1,0 +1,257 @@
+<div class="card card-custom gutter-b">
+  <div class="card-header">
+    <div class="card-title">
+      <span class="card-label">Quản lý nhân viên</span>
+    </div>
+
+    <div class="card-search">
+      <app-jee-search-form
+        [showSearch]="showSearch"
+        (keywordEvent)="changeKeyword($event)"
+        (filterEvent)="changeFilter($event)"
+      >
+      </app-jee-search-form>
+    </div>
+
+    <div class="card-toolbar">
+      <button
+        mat-raised-button
+        class="ja_btn_tatca"
+        (click)="import()"
+      >
+        Import nhân viên
+      </button>
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="card-toolbar">
+      <button
+        mat-raised-button
+        class="ja_btn-addnew"
+        (click)="create()"
+      >
+        Thêm nhân viên
+      </button>
+    </div>
+  </div>
+
+  <div class="card-header">
+    <div class="card-title"></div>
+
+    <div class="card-toolbar">
+      <button
+        (click)="filterDaKhoa()"
+        style="background-color:white;color:black"
+        mat-raised-button
+      >
+        Đã khóa
+      </button>
+
+      &nbsp;&nbsp;
+
+      <button
+        (click)="filterDangSuDung()"
+        style="background-color:white;color:#3699ff"
+        mat-raised-button
+      >
+        Đang sử dụng
+      </button>
+
+      &nbsp;&nbsp;
+
+      <button
+        (click)="filterAll()"
+        style="background-color:white;color:#16a850"
+        mat-raised-button
+      >
+        Tất cả
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div
+      class="table-responsive angular-bootstrap-table"
+      [ngStyle]="{ height: getHeight() }"
+    >
+      <table
+        mat-table
+        class="table table-head-custom table-vertical-center overflow-hidden"
+        [dataSource]="nhanVienManagementService.items$ | async"
+      >
+
+        <!-- Mã NV -->
+        <ng-container matColumnDef="manv">
+          <th *matHeaderCellDef>
+            Mã NV
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.MaNV }}
+          </td>
+        </ng-container>
+
+        <!-- Họ tên -->
+        <ng-container matColumnDef="hoten">
+          <th *matHeaderCellDef>
+            Họ tên
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.HoTen }}
+          </td>
+        </ng-container>
+
+        <!-- SDT -->
+        <ng-container matColumnDef="sdt">
+          <th *matHeaderCellDef>
+            SĐT
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.SDT }}
+          </td>
+        </ng-container>
+
+        <!-- CCCD -->
+        <ng-container matColumnDef="cccd">
+          <th *matHeaderCellDef>
+            CCCD
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.CCCD }}
+          </td>
+        </ng-container>
+
+        <!-- Email -->
+        <ng-container matColumnDef="email">
+          <th *matHeaderCellDef>
+            Email
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.Email }}
+          </td>
+        </ng-container>
+
+        <!-- Phòng ban -->
+        <ng-container matColumnDef="phongban">
+          <th *matHeaderCellDef>
+            Phòng ban
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.PhongBan }}
+          </td>
+        </ng-container>
+
+        <!-- Chức vụ -->
+        <ng-container matColumnDef="chucvu">
+          <th *matHeaderCellDef>
+            Chức vụ
+          </th>
+          <td mat-cell *matCellDef="let r">
+            {{ r.ChucVu }}
+          </td>
+        </ng-container>
+
+        <!-- Trạng thái -->
+        <ng-container matColumnDef="trangthai">
+          <th *matHeaderCellDef>
+            Trạng thái
+          </th>
+
+          <td mat-cell *matCellDef="let r">
+
+            <span
+              *ngIf="r.Status == 1"
+              class="label label-light-success label-inline"
+            >
+              Đang hoạt động
+            </span>
+
+            <span
+              *ngIf="r.Status == 0"
+              class="label label-light-danger label-inline"
+            >
+              Đã khóa
+            </span>
+
+          </td>
+        </ng-container>
+
+        <!-- Thao tác -->
+        <ng-container matColumnDef="ThaoTac">
+          <th *matHeaderCellDef>
+            Thao tác
+          </th>
+
+          <td mat-cell *matCellDef="let item">
+
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="menu"
+            >
+              <i class="flaticon-more-v2 color_more"></i>
+            </button>
+
+            <mat-menu #menu="matMenu">
+
+              <button
+                mat-menu-item
+                (click)="edit(item)"
+              >
+                <mat-icon>edit</mat-icon>
+                <span>Sửa</span>
+              </button>
+
+              <button
+                mat-menu-item
+                (click)="delete(item)"
+              >
+                <mat-icon>delete</mat-icon>
+                <span>Xóa</span>
+              </button>
+
+              <button
+                *ngIf="item.Status == 1"
+                mat-menu-item
+                (click)="lockNhanVien(item)"
+              >
+                <mat-icon>lock</mat-icon>
+                <span>Khóa nhân viên</span>
+              </button>
+
+              <button
+                *ngIf="item.Status == 0"
+                mat-menu-item
+                (click)="unLockNhanVien(item)"
+              >
+                <mat-icon>lock_open</mat-icon>
+                <span>Mở khóa nhân viên</span>
+              </button>
+
+            </mat-menu>
+
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns; sticky: true"
+        ></tr>
+
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+        ></tr>
+
+      </table>
+    </div>
+
+    <app-paginator
+      class="d-flex justify-content-between align-items-center flex-wrap"
+      [paginator]="paginator"
+      [isLoading]="isLoading"
+      (paginate)="paginate($event)"
+    >
+    </app-paginator>
+
+  </div>
+</div>

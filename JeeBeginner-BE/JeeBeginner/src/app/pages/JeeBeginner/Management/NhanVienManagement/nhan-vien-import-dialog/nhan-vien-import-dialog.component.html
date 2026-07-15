@@ -1,0 +1,33 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <div class="modal-title h4"><span class="dialog-title">Import nhân viên từ Excel</span></div>
+    <div class="modal-title" style="display: inline">
+      <button mat-raised-button class="ja_btn-addnew" style="float: right; margin: 0" [disabled]="isImporting" (click)="importFile()">Import</button>
+      <button mat-raised-button class="ja_btn-goback" style="float: right; margin: 0 12px 0 0" [disabled]="isImporting" (click)="goBack()">Trở lại</button>
+    </div>
+  </div>
+
+  <div class="overlay overlay-block cursor-default modal-body overflow-auto" style="min-height: 330px; max-height: 70vh">
+    <p><b>Hướng dẫn:</b></p>
+    <p>1. Tải file mẫu, điền dữ liệu từ dòng thứ 2 và không đổi tên các cột.</p>
+    <p>2. Cột bắt buộc: <b>Mã NV</b>, <b>Họ tên</b>. File chỉ nhận định dạng <b>.xlsx</b>.</p>
+    <p>3. Mỗi dòng hợp lệ sẽ được tạo mới và mã hóa Họ tên, CCCD. Dòng trùng Mã NV sẽ được báo lỗi.</p>
+
+    <div class="form-group row align-items-center mt-6">
+      <div class="col-lg-4">
+        <button mat-raised-button class="ja_btn-goback" type="button" (click)="downloadTemplate()">Tải file mẫu Excel</button>
+      </div>
+      <div class="col-lg-8">
+        <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="selectFile($event)" />
+        <div class="text-muted mt-2" *ngIf="selectedFile">Đã chọn: {{ selectedFile.name }}</div>
+      </div>
+    </div>
+
+    <div class="alert alert-success mt-5" *ngIf="result">
+      Import thành công: <b>{{ result.success }}</b> dòng. Không nhập được: <b>{{ result.failed }}</b> dòng.
+    </div>
+    <div class="alert alert-danger" *ngIf="result?.errors?.length">
+      <div *ngFor="let error of result.errors">Dòng {{ error.row }}: {{ error.message }}</div>
+    </div>
+  </div>
+</div>

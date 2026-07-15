@@ -36,6 +36,26 @@
     >
       <!-- begin::Menu Nav -->
       <ul class="menu-nav" [ngClass]="ulCSSClasses">
+        <li class="menu-item" aria-haspopup="true" routerLinkActive="menu-item-active">
+          <a class="menu-link" routerLink="/Management/CustomerManagement" routerLinkActive="active">
+            <span
+              [inlineSVG]="'./assets/media/svg/icons/Communication/Group.svg'"
+              [cacheSVG]="true"
+              class="svg-icon menu-icon"
+            ></span>
+            <span class="menu-text">Quản lý khách hàng</span>
+          </a>
+        </li>
+        <li class="menu-item" aria-haspopup="true" routerLinkActive="menu-item-active">
+          <a class="menu-link" routerLink="/Management/NhanVienManagement" routerLinkActive="active">
+            <span
+              [inlineSVG]="'./assets/media/svg/icons/Communication/Add-user.svg'"
+              [cacheSVG]="true"
+              class="svg-icon menu-icon"
+            ></span>
+            <span class="menu-text">Quản lý nhân viên</span>
+          </a>
+        </li>
         <ng-container *ngFor="let item of menuConfig.items">
           <ng-container
             *ngIf="item.section"

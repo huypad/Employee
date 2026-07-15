@@ -1,0 +1,68 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <div class="modal-title h4" id="nhan-vien-dialog-title">
+      <span class="dialog-title">{{ data?.item ? 'Cập nhật nhân viên' : 'Quản lý nhân viên' }}</span>
+    </div>
+    <div class="modal-title" style="display: inline">
+      <button mat-raised-button class="ja_btn-addnew" style="float: right; margin: 0" (click)="onSubmit()">
+        Lưu
+      </button>
+      <button mat-raised-button class="ja_btn-goback" style="float: right; margin: 0 12px 0 0" (click)="goBack()">
+        Trở lại
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay overlay-block cursor-default modal-body overflow-auto" style="min-height: 300px; max-height: 70vh">
+    <form class="form form-label-right" [formGroup]="formGroup">
+      <div class="form-group row">
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-batbuoc mat-focused required" required matInput type="text" formControlName="MaNV" placeholder="Mã nhân viên *" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-batbuoc mat-focused required" required matInput type="text" formControlName="HoTen" placeholder="Họ tên *" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="tel" formControlName="SDT" placeholder="Số điện thoại" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="text" formControlName="CCCD" placeholder="CCCD" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="email" formControlName="Email" placeholder="Email" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="text" formControlName="DiaChi" placeholder="Địa chỉ" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="text" formControlName="PhongBan" placeholder="Phòng ban" />
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4">
+          <mat-form-field class="example-full-width">
+            <input class="input-thuong mat-focused" matInput type="text" formControlName="ChucVu" placeholder="Chức vụ" />
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
