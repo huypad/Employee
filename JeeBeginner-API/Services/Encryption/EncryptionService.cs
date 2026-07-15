@@ -168,13 +168,46 @@ namespace JeeBeginner.Services.Encryption
             return ProcessFpe(cipherText, DigitAlphabet, false);
         }
 
+        // public string EncryptFpeAlphaNumeric(string plainText)
+        // {
+        //     return ProcessFpe(plainText, AlphaNumericAlphabet, true);
+        // }
+
+        // public string DecryptFpeAlphaNumeric(string cipherText)
+        // {
+        //     return ProcessFpe(cipherText, AlphaNumericAlphabet, false);
+        // }
+        private const int MinAlphaNumericLength = 4;
+        private const char AlphaPadChar = 'Q';        
+
         public string EncryptFpeAlphaNumeric(string plainText)
         {
-            return ProcessFpe(plainText, AlphaNumericAlphabet, true);
+            if (string.IsNullOrEmpty(plainText)) return plainText;
+            int meaningfulLength = plainText.Count(c => AlphaNumericAlphabet.IndexOf(c) >= 0);
+
+            if (meaningfulLength >= MinAlphaNumericLength)
+                return ProcessFpe(plainText, AlphaNumericAlphabet, true);
+
+            int originalLength = plainText.Length;
+            string padded = plainText.PadRight(plainText.Length + (MinAlphaNumericLength - meaningfulLength), AlphaPadChar);
+            string encrypted = ProcessFpe(padded, AlphaNumericAlphabet, true);
+            return $"~{originalLength}~{encrypted}";
         }
 
         public string DecryptFpeAlphaNumeric(string cipherText)
         {
+            if (string.IsNullOrEmpty(cipherText)) return cipherText;
+
+            if (cipherText.StartsWith("~"))
+            {
+                int endMarker = cipherText.IndexOf('~', 1);
+                int originalLength = int.Parse(cipherText.Substring(1, endMarker - 1));
+                string encryptedPart = cipherText.Substring(endMarker + 1);
+
+                string decryptedPadded = ProcessFpe(encryptedPart, AlphaNumericAlphabet, false);
+                return decryptedPadded.Substring(0, originalLength);
+            }
+
             return ProcessFpe(cipherText, AlphaNumericAlphabet, false);
         }
 
