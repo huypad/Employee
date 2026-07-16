@@ -22,6 +22,13 @@ const routes: Routes = [
           import('./JeeBeginner/Management/CustomerManagement/customer-management.module').then((m) => m.CustomerManagementModule),
       },
       {
+        path: 'Management/NhanVienManagement',
+        loadChildren: () =>
+          import('./JeeBeginner/Management/NhanVienManagement/nhan-vien-management.module').then(
+            (m) => m.NhanVienManagementModule
+          ),
+      },
+      {
         path: 'Management/PartnerManagement',
         loadChildren: () =>
           import('./JeeBeginner/Management/PartnerManagement/partner-management.module').then((m) => m.PartnerManagementModule),

@@ -2,20 +2,25 @@ using JeeBeginner.Reponsitories.AccountManagement;
 using JeeBeginner.Reponsitories.Authorization;
 using JeeBeginner.Reponsitories.CustomerManagement;
 using JeeBeginner.Reponsitories.PartnerManagement;
+using JeeBeginner.Reponsitories.NhanVienManagement;
+using JeeBeginner.Classes;
 using JeeBeginner.Services;
 using JeeBeginner.Services.AccountManagement;
 using JeeBeginner.Services.Authorization;
 using JeeBeginner.Services.CustomerManagement;
 using JeeBeginner.Services.Encryption;
 using JeeBeginner.Services.PartnerManagement;
+using JeeBeginner.Services.NhanVienManagement;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Text;
 
@@ -61,6 +66,18 @@ namespace JeeBeginner
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"])),
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        // Trả cùng định dạng lỗi mà các API quản lý đang dùng.
+                        context.HandleResponse();
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json; charset=utf-8";
+                        string response = JsonConvert.SerializeObject(JsonResultCommon.BatBuoc("Đăng nhập"));
+                        await context.Response.WriteAsync(response);
+                    }
+                };
             });
 
             //Swagger
@@ -69,10 +86,11 @@ namespace JeeBeginner
                 var securityScheme = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Description = "Please enter into field the word 'Bearer' following by space and JWT",
+                    Description = "Dán JWT token vào đây (không cần gõ Bearer).",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                    //Scheme = "bearer", // must be lower case
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
                     Reference = new OpenApiReference
                     {
                         Id = "Bearer",
@@ -96,12 +114,14 @@ namespace JeeBeginner
             services.AddTransient<IPartnerManagementRepository, PartnerManagementRepository>();
             services.AddTransient<IAuthorizationRepository, AuthorizationRepository>();
             services.AddTransient<ICustomerManagementRepository, CustomerManagementRepository>();
+            services.AddTransient<INhanVienManagementRepository, NhanVienManagementRepository>();
             #endregion add Repository
             #region add service
             services.AddTransient<IPartnerManagementService, PartnerManagementService>();
             services.AddTransient<IAccountManagementService, AccountManagementService>();
             services.AddTransient<ICustomAuthorizationService, CustomAuthorizationService>();
             services.AddTransient<ICustomerManagementService, CustomerManagementService>();
+            services.AddTransient<INhanVienManagementService, NhanVienManagementService>();
             services.AddTransient<IEncryptionService, EncryptionService>();
             #endregion add service
         }
@@ -122,6 +142,7 @@ namespace JeeBeginner
 
             app.UseCors("AllowOrigin");
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseStaticFiles();// For the wwwroot folder
