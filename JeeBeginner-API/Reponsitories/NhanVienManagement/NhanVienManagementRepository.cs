@@ -104,12 +104,13 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             using DpsConnection cnn = new DpsConnection(_connectionString);
             DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, Holot, Ten, CMND
                 FROM dbo.Tbl_Nhanvien
-                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMNDHash IS NULL");
+                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMNDHash IS NULL
+                    OR CMND_Enc LIKE 'AESGCM:%'");
 
             int updated = 0;
             foreach (DataRow row in rows.Rows)
             {
-                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienAes(new NhanVienCryptoModel
+                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithFpeCccd(new NhanVienCryptoModel
                 {
                     I_Holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]),
                     I_Ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]),
@@ -147,7 +148,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 
         private void AddEncryptedValues(Hashtable values, string hoLot, string ten, string cccd)
         {
-            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienAes(new NhanVienCryptoModel
+            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithFpeCccd(new NhanVienCryptoModel
             {
                 I_Holot = hoLot,
                 I_Ten = ten,

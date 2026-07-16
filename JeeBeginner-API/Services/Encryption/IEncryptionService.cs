@@ -20,6 +20,9 @@ namespace JeeBeginner.Services.Encryption
         NhanVienCryptoModel EncryptNhanVienAes(NhanVienCryptoModel model);
         NhanVienCryptoModel DecryptNhanVienAes(NhanVienCryptoModel model);
 
+        // Du lieu luu cho module nhan vien: ho ten dung AES, CCCD dung FPE de giu dung dinh dang so.
+        NhanVienCryptoModel EncryptNhanVienWithFpeCccd(NhanVienCryptoModel model);
+
         NhanVienCryptoModel EncryptNhanVienRsa(NhanVienCryptoModel model);
         NhanVienCryptoModel DecryptNhanVienRsa(NhanVienCryptoModel model);
 
