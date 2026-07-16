@@ -104,13 +104,12 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             using DpsConnection cnn = new DpsConnection(_connectionString);
             DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, Holot, Ten, CMND
                 FROM dbo.Tbl_Nhanvien
-                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMNDHash IS NULL
-                    OR CMND_Enc LIKE 'AESGCM:%'");
+                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL");
 
             int updated = 0;
             foreach (DataRow row in rows.Rows)
             {
-                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithFpeCccd(new NhanVienCryptoModel
+                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithAesAndFpeCccd(new NhanVienCryptoModel
                 {
                     I_Holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]),
                     I_Ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]),
@@ -122,6 +121,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                     { "Holot_Enc", encrypted.Holot_Enc },
                     { "Ten_Enc", encrypted.Ten_Enc },
                     { "CMND_Enc", encrypted.CMND_Enc },
+                    { "CMND_FPE", encrypted.CMND_FPE },
                     { "CMNDHash", encrypted.CMNDHash },
                     { "LastModified", DateTime.Now }
                 };
@@ -148,7 +148,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 
         private void AddEncryptedValues(Hashtable values, string hoLot, string ten, string cccd)
         {
-            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithFpeCccd(new NhanVienCryptoModel
+            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithAesAndFpeCccd(new NhanVienCryptoModel
             {
                 I_Holot = hoLot,
                 I_Ten = ten,
@@ -158,6 +158,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             values.Add("Holot_Enc", encrypted.Holot_Enc);
             values.Add("Ten_Enc", encrypted.Ten_Enc);
             values.Add("CMND_Enc", encrypted.CMND_Enc);
+            values.Add("CMND_FPE", encrypted.CMND_FPE);
             values.Add("CMNDHash", encrypted.CMNDHash);
         }
 

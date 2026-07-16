@@ -25,6 +25,7 @@ namespace JeeBeginner.Models.Encryption
         public string Holot_Enc { get; set; }
         public string Ten_Enc { get; set; }
         public string CMND_Enc { get; set; }
+        public string CMND_FPE { get; set; }
         public string Sotaikhoan_Enc { get; set; }
         public string CMNDHash { get; set; }
         public string SotaikhoanHash { get; set; }
