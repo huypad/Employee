@@ -1,43 +1,62 @@
-# — Đo hiệu năng mã hóa (Performance Testing)
+# JeeBeginner — Hướng dẫn chạy toàn bộ hệ thống
 
-Tài liệu này hướng dẫn chạy và giải thích kết quả của 2 công việc:
-- Dùng `System.Diagnostics.Stopwatch` (C#) đo thời gian mã hóa/giải mã/hash.
-- Dùng **K6** giả lập nhiều người dùng gọi cùng lúc (50/100/200), đo độ trễ (Latency) và thông lượng (Throughput).
-
-Cả 2 đều gọi vào endpoint mã hóa thật do  viết (`EncryptionTestController`), không đụng vào database — dữ liệu test là tự sinh ngẫu nhiên (giả lập).
+Tài liệu này hướng dẫn từ A-Z: setup database, chạy API, chạy giao diện (UI), và chạy 2 công cụ đo hiệu năng mã hóa 
 
 ---
 
-## 1. Cấu trúc thư mục liên quan
+## 0. Cấu trúc thư mục tổng thể
 
 ```
 Employee/
-├── JeeBeginner-API/              ← API chính 
-│   ├── .env                       ← khóa bí mật (connection string, JWT, khóa mã hóa) - KHÔNG push git
-│   ├── Controllers/EncryptionTestController.cs   ← endpoint mã hóa 
-│   ├── Services/Encryption/EncryptionService.cs  ← logic thuật toán AES/RSA/FPE/Hash 
-│   ├── LoadTests/
-│   │   └── test.js                ← script K6 
-│   ├── LoadTestResults/           ← log thô do K6 xuất ra (.json) - KHÔNG push git
-│   └── summarize-results.js       ← script tổng hợp bảng so sánh từ LoadTestResults/
+├── JeeBeginner-API/              ← API backend (.NET) —  (Nhân viên) +  (Mã hóa)
+│   ├── .env                       ← khóa bí mật - KHÔNG push git
+│   ├── Controllers/
+│   │   ├── NhanVienManagementController.cs   ← CRUD nhân viên
+│   │   └── EncryptionTestController.cs        ← endpoint test mã hóa 
+│   ├── Services/Encryption/EncryptionService.cs   ← logic AES/RSA/FPE/Hash 
+│   ├── Reponsitories/NhanVienManagement/          ← gọi mã hóa khi lưu/đọc nhân viên
+│   ├── Scripts/                   ← các script SQL (xem mục 1)
+│   ├── LoadTests/test.js          ← script K6 
+│   ├── LoadTestResults/           ← log thô K6 xuất ra - KHÔNG push git
+│   └── summarize-results.js       ← script tổng hợp bảng so sánh
 │
-├── PerformanceTestClient/         ← chương trình C# riêng 
+├── JeeBeginner-BE/JeeBeginner/    ← Giao diện (Angular)
+│
+├── PerformanceTestClient/         ← chương trình C# riêng
 │   ├── Program.cs                 ← dùng Stopwatch gọi API, đo thời gian
-│   └── Logs/performance_log.csv   ← log thô do Stopwatch ghi - KHÔNG push git
+│   ├── test-data-200.json         ← 200 bản ghi test cố định
+│   └── Logs/performance_log.csv   ← log thô Stopwatch - KHÔNG push git
 │
 └── README.md                      ← chính là file này
 ```
 
 ---
 
-## 2. Chuẩn bị trước khi chạy
+## 1. Setup Database
 
-### 2.1. File `.env`
-Đảm bảo `JeeBeginner-API/.env` có đủ các khóa sau (xin từ người quản lý khóa, không tự bịa):
+Database dùng file backup `.bak` do người quản lý DB (Kieu Oanh) cung cấp — **không dùng script SQL cũ trong `Scripts/` để tạo bảng `Tbl_Nhanvien` từ đầu**, vì các script đó chỉ là ALTER (thêm cột), giả định bảng đã tồn tại sẵn.
+
+### Cách restore:
+1. Mở SSMS → chuột phải **Databases** → **Restore Database...**
+2. Chọn **Device** → **Add** → trỏ tới file `.bak` mới nhất được cung cấp
+3. Nếu máy đã có sẵn database `JeeBeginner` từ trước, **restore đè lên** để lấy đúng schema mới nhất
+4. Vào tab **Files**, sửa lại đường dẫn `.mdf`/`.ldf` cho khớp ổ đĩa máy bạn
+5. Kiểm tra lại bằng câu lệnh:
+```sql
+SELECT TOP 5 Id_NV, MaNV, Holot, Ten, Mobile, CMND, CMND_Enc, CMNDHash
+FROM dbo.Tbl_Nhanvien;
 ```
-ConnectionStrings__DefaultConnection=...
+Nếu ra kết quả (không lỗi "Invalid object name") là restore đúng.
+
+---
+
+## 2. File `.env`
+
+Đặt tại `JeeBeginner-API/.env`, cần đủ các khóa sau (xin từ người quản lý khóa):
+```
+ConnectionStrings__DefaultConnection=Data Source=...;Initial Catalog=JeeBeginner;...
 JWT__Secret=...
-JWT__JwtExpireHours=...
+JWT__JwtExpireHours=24
 Encryption__AesKey=...
 Encryption__FpeKey=...
 Encryption__FpeTweak=...
@@ -45,30 +64,57 @@ Encryption__HmacKey=...
 Encryption__RsaPrivateKey=...
 Encryption__RsaPublicKey=...
 ```
-Thiếu bất kỳ khóa nào trong nhóm `Encryption__*`, API **sẽ không khởi động được** (báo lỗi ngay, đây là chủ đích để tránh dùng khóa không an toàn).
-
-### 2.2. Cài đặt cần có
-- .NET SDK (8.0)
-- [K6](https://k6.io/) — cài bằng `winget install k6 --source winget`
-- Node.js — để chạy script tổng hợp `summarize-results.js`
+Thiếu bất kỳ khóa `Encryption__*` nào, API **sẽ không khởi động được** (chủ đích, để tránh chạy với khóa không an toàn).
 
 ---
 
-## 3. Cách chạy
+## 3. Chạy API
 
-### Bước 1: Chạy API (bắt buộc, để mọi test bên dưới gọi vào)
 ```powershell
 cd JeeBeginner-API
+dotnet build
 dotnet run --launch-profile "JeeBeginner"
 ```
-Giữ nguyên terminal này chạy xuyên suốt. Xác nhận thấy dòng `Now listening on: https://localhost:1404`.
+Xác nhận thấy `Now listening on: https://localhost:1404`. Giữ terminal này chạy xuyên suốt.
 
-### Bước 2: Chạy — đo bằng Stopwatch (C#)
-Mở terminal khác:
+Test nhanh qua Swagger: `https://localhost:1404/swagger`
+
+---
+
+## 4. Chạy giao diện (UI - Angular)
+
+### Yêu cầu: Node 16.x (project Angular 11 cũ, không tương thích Node bản quá mới)
+```powershell
+nvm install 16.20.2
+nvm use 16.20.2
+```
+
+### Chạy:
+```powershell
+cd JeeBeginner-BE\JeeBeginner
+npm install
+npm start
+```
+Mở `http://localhost:4002`.
+
+### Đăng nhập:
+Dùng tài khoản có sẵn trong bảng `AccountList` (ví dụ `huytran`).
+
+### Kiểm tra menu "Quản lý nhân viên":
+- Danh sách nhân viên phải hiển thị **đúng Họ Tên và CCCD dạng đọc được** (VD "Trần Văn An", "100000000001"), **không phải** chuỗi mã hóa dạng `AESGCM:v1:...`
+- Có thể **Thêm / Import Excel / Khóa-Mở khóa** nhân viên — mỗi lần Thêm/Sửa sẽ tự động gọi mã hóa (AES) trước khi lưu xuống DB, và tự giải mã khi hiển thị lại lên UI.
+
+---
+
+## 5. Đo thời gian bằng `System.Diagnostics.Stopwatch`
+
 ```powershell
 cd PerformanceTestClient
+dotnet build
 dotnet run -- <thuật_toán> <số_lần_gọi>
 ```
+`<thuật_toán>`: `plaintext`, `aes`, `rsa`, `fpe`, `hash`.
+
 Ví dụ:
 ```powershell
 dotnet run -- aes 20
@@ -77,15 +123,20 @@ dotnet run -- fpe 20
 dotnet run -- hash 20
 dotnet run -- plaintext 20
 ```
-`<thuật_toán>` là 1 trong 5 giá trị: `plaintext`, `aes`, `rsa`, `fpe`, `hash`.
-Kết quả in ra ngay trên terminal, đồng thời ghi chi tiết vào `PerformanceTestClient/Logs/performance_log.csv`.
+Kết quả in ra terminal + ghi vào `PerformanceTestClient/Logs/performance_log.csv`. Dữ liệu test lấy tuần tự từ `test-data-200.json` (200 bản ghi cố định, không phải random), đảm bảo tái lập được kết quả giữa các lần chạy.
 
-### Bước 3: Chạy — giả lập tải bằng K6
+---
+
+## 6. Giả lập tải bằng K6
+
+Cài K6 (nếu chưa có): `winget install k6 --source winget`
+
 ```powershell
 cd JeeBeginner-API\LoadTests
 k6 run --env LOAD_LEVEL=<so_VU> --env ALGO=<thuật_toán> --out json=../LoadTestResults/results_<ten>.json test.js
 ```
-Chạy đủ **5 thuật toán × 3 mức tải (50/100/200)** = 15 lệnh:
+
+Chạy đủ 5 thuật toán × 3 mức tải (50/100/200) = 15 lệnh:
 ```powershell
 k6 run --env LOAD_LEVEL=50  --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_50vu.json  test.js
 k6 run --env LOAD_LEVEL=100 --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_100vu.json test.js
@@ -107,75 +158,49 @@ k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=../LoadTestResults/result
 k6 run --env LOAD_LEVEL=100 --env ALGO=hash --out json=../LoadTestResults/results_hash_100vu.json test.js
 k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=../LoadTestResults/results_hash_200vu.json test.js
 ```
-Mỗi lệnh chạy khoảng 30 giây, xuất ra 1 file `.json` trong `LoadTestResults/`.
 
-### Bước 4: Tổng hợp kết quả thành bảng dễ đọc
+### Tổng hợp kết quả:
 ```powershell
 cd JeeBeginner-API
 node summarize-results.js
 ```
-In ra bảng so sánh 15 dòng, đồng thời xuất `LoadTestResults/summary.csv` (mở bằng Excel).
+In ra bảng so sánh 15 dòng + xuất `LoadTestResults/summary.csv`.
 
 ---
 
-## 4. Giải thích các chỉ số trong kết quả K6
-
-Khi chạy xong 1 lệnh `k6 run`, terminal in ra 1 khối kết quả dạng:
-
-```
-checks_total.......: 6000     197.38/s
-checks_succeeded...: 100.00%  6000 out of 6000
-checks_failed......: 0.00%    0 out of 6000
-
-hash_duration_ms...: avg=4.66  min=0  med=2.10  max=72.67  p(90)=10.59  p(95)=19.07
-
-http_req_duration..: avg=4.65ms  min=0s  med=2.1ms  max=72.66ms  p(90)=10.58ms  p(95)=19.07ms
-http_req_failed....: 0.00%  0 out of 6000
-http_reqs..........: 6000   197.38/s
-
-vus................: 200    min=200  max=200
-iterations.........: 6000   197.38/s
-```
+## 7. Giải thích các chỉ số kết quả
 
 | Chỉ số | Ý nghĩa |
 |---|---|
-| `checks_total` | Tổng số lần kiểm tra điều kiện (VD "status phải là 200") đã chạy |
-| `checks_succeeded` | % số lần kiểm tra đúng — **mong muốn luôn 100%** |
-| `checks_failed` | % số lần kiểm tra sai — **mong muốn luôn 0%**, khác 0 nghĩa là có request lỗi/hệ thống quá tải |
-| `avg` | Trung bình cộng của tất cả các lần đo |
-| `med` (median) | Giá trị đứng giữa nếu xếp tất cả các lần đo theo thứ tự tăng dần — ít bị ảnh hưởng bởi vài giá trị bất thường hơn `avg` |
-| `min` / `max` | Lần nhanh nhất / chậm nhất trong toàn bộ các lần đo |
-| `p(90)`, `p(95)` | **Percentile** — `p(95)=19.07ms` nghĩa là 95% số lần gọi có thời gian ≤ 19.07ms, chỉ 5% số lần chậm hơn con số này. Đây là chỉ số quan trọng để đánh giá "trường hợp xấu nhưng vẫn thường xảy ra", ít bị lệch bởi 1-2 giá trị đột biến như `max` |
-| `hash_duration_ms` (hoặc `encrypt_duration_ms`/`decrypt_duration_ms`) | Chỉ số **tự định nghĩa riêng** trong `test.js`, đo thời gian gọi đúng 1 loại thao tác (Hash/Encrypt/Decrypt), tách biệt khỏi `http_req_duration` chung |
-| `http_req_duration` | Thời gian toàn bộ 1 request HTTP (gửi → nhận phản hồi), do K6 tự động đo cho mọi request |
-| `vus` | Số "người dùng ảo" (Virtual Users) đang chạy đồng thời — chính là mức tải 50/100/200 |
-| `iterations` | Tổng số lượt gọi hoàn thành. Số phía sau (VD `197.38/s`) là **Throughput** — số lượt xử lý được mỗi giây |
+| `checks_succeeded` / `checks_failed` | % request đúng/sai — mong muốn luôn 100%/0% |
+| `avg` | Trung bình cộng tất cả các lần đo |
+| `med` (median) | Giá trị đứng giữa khi xếp các lần đo theo thứ tự tăng dần |
+| `p(90)`, `p(95)` | Percentile — `p(95)=19ms` nghĩa là 95% số lần gọi ≤ 19ms, chỉ 5% chậm hơn. Ít bị lệch bởi giá trị đột biến hơn `avg`/`max` |
+| `http_req_duration` | Thời gian toàn bộ 1 request (K6 tự đo) |
+| `encrypt_duration_ms` / `decrypt_duration_ms` / `hash_duration_ms` | Chỉ số tự định nghĩa trong `test.js`, tách riêng từng loại thao tác |
+| `vus` | Số "người dùng ảo" chạy đồng thời — mức tải 50/100/200 |
+| `iterations` | Tổng số lượt gọi hoàn thành; số kèm theo (VD `197/s`) là **Throughput** |
+
+### Bảng tổng hợp (`summarize-results.js`):
+| Cột | Ý nghĩa |
+|---|---|
+| `Checks Fail` | Số lượt kiểm tra thất bại / tổng số lượt |
+| `HTTP avg/p95` | Độ trễ tổng của cả request (mã hóa + network) |
+| `Encrypt/Hash avg` | Thời gian riêng bước mã hóa/hash |
+| `Decrypt avg` | Thời gian riêng bước giải mã (Plaintext/Hash không có, hiện `-`) |
 
 ---
 
-## 5. Giải thích bảng tổng hợp (`summarize-results.js` xuất ra)
+## 8. Kết luận rút ra từ số liệu đã chạy
 
-```
-File                      Checks Fail  HTTP avg(ms)  HTTP p95(ms)  Encrypt/Hash avg  Decrypt avg
-results_aes_100vu.json    0/9000       3.54          12.33         3.93              3.14
-results_rsa_200vu.json    0/17619      14.73         38.56         16.33             13.13
-```
-
-| Cột | Lấy từ đâu | Ý nghĩa |
-|---|---|---|
-| `File` | Tên file `.json` trong `LoadTestResults/` | Cho biết đây là kết quả của thuật toán nào, mức tải bao nhiêu (đọc từ tên file, VD `aes_100vu` = AES, 100 VUs) |
-| `Checks Fail` | Đếm số dòng `metric: "checks"` có giá trị `0` trong file `.json`, chia cho tổng | Số lượt kiểm tra thất bại / tổng số lượt — **luôn cần là `0/...`** |
-| `HTTP avg(ms)` / `HTTP p95(ms)` | Gom toàn bộ giá trị `metric: "http_req_duration"` trong file, tính trung bình và percentile 95% | Độ trễ tổng của cả request (bao gồm mã hóa + network) |
-| `Encrypt/Hash avg` | Gom giá trị `metric: "encrypt_duration_ms"` (AES/RSA/FPE) hoặc `"hash_duration_ms"` (Hash) | Thời gian riêng của bước mã hóa/hash, tách khỏi decrypt |
-| `Decrypt avg` | Gom giá trị `metric: "decrypt_duration_ms"` | Thời gian riêng của bước giải mã. Plaintext/Hash không có cột này (hiện dấu `-`) vì bản chất không có bước giải mã |
-
-**Vì sao có dòng `results_rsa_200vu.json` chỉ có `17619` request thay vì `18000`:** RSA xử lý chậm hơn AES/FPE, nên trong cùng 30 giây, mỗi VU hoàn thành được ít vòng lặp hơn một chút → tổng số request thấp hơn. Đây là bằng chứng cụ thể cho thấy RSA chậm hơn các thuật toán khác, không phải lỗi.
+- Cả 5 cách xử lý (Plaintext/AES/RSA/FPE/Hash) đều ổn định, không lỗi ở mọi mức tải (0-200 VUs).
+- **Thứ tự tốc độ (nhanh → chậm):** Hash ≈ AES ≈ FPE (nhanh, ổn định) → RSA (chậm nhất, tăng rõ rệt khi tải cao).
+- RSA nên hạn chế dùng cho khối lượng lớn/tải cao do chi phí xử lý nặng hơn hẳn.
+- Hệ thống thật (UI Quản lý Nhân viên) đã tích hợp đúng: mã hóa khi lưu, giải mã khi hiển thị, đã kiểm chứng qua giao diện thực tế.
 
 ---
 
-## 6. Kết luận rút ra được (từ dữ liệu đã chạy)
+## 9. Lưu ý bảo mật
 
-- Cả 5 thuật toán đều **ổn định**, không có request nào lỗi ở bất kỳ mức tải nào (0-200 VUs).
-- **Thứ tự tốc độ (nhanh → chậm):** Hash ≈ AES ≈ FPE (nhóm nhanh, ổn định) → RSA (chậm nhất, tăng rõ rệt khi tải cao — chi phí xử lý gần như tăng gấp đôi khi tải tăng gấp đôi).
-- Hash (HMAC-SHA256) nhanh nhất vì chỉ xử lý 1 chiều, không có bước giải mã.
-- RSA nên hạn chế dùng cho khối lượng lớn/tải cao do chi phí xử lý nặng hơn hẳn AES/FPE/Hash.
+- File `.env` và mọi file log (`Logs/*.csv`, `LoadTestResults/*.json`) đều đã đưa vào `.gitignore` — không được push lên git.
+- Không restart API giữa lúc test RSA nếu khóa RSA chưa cấu hình cố định trong `.env` (nay đã bắt buộc cấu hình, không còn tự sinh ngẫu nhiên nữa).
