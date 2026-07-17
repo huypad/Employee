@@ -227,7 +227,7 @@ namespace JeeBeginner.Controllers
             if (model == null) return "Dữ liệu nhân viên là bắt buộc";
             if (isUpdate && model.Id <= 0) return "Id nhân viên không hợp lệ";
 
-            model.MaNV = model.MaNV?.Trim();
+            model.MaNV = model.MaNV?.Trim().ToUpperInvariant();
             model.HoTen = Regex.Replace(model.HoTen ?? string.Empty, @"\s+", " ").Trim();
             model.SDT = model.SDT?.Trim();
             model.CCCD = model.CCCD?.Trim();
@@ -237,11 +237,11 @@ namespace JeeBeginner.Controllers
             model.ChucVu = model.ChucVu?.Trim();
 
             if (string.IsNullOrWhiteSpace(model.MaNV)) return "Mã nhân viên là bắt buộc";
-            if (!Regex.IsMatch(model.MaNV, "^[A-Za-z0-9_-]{2,30}$")) return "Mã nhân viên chỉ gồm chữ, số, dấu gạch ngang hoặc gạch dưới (2-30 ký tự)";
+            if (!Regex.IsMatch(model.MaNV, "^NV\\d{1,10}$", RegexOptions.IgnoreCase)) return "Mã nhân viên phải có tiền tố NV, theo sau là chữ số (ví dụ: NV105)";
             if (model.HoTen.Length < 2 || model.HoTen.Length > 100) return "Họ tên phải từ 2 đến 100 ký tự";
             if (string.IsNullOrWhiteSpace(model.CCCD)) return "CCCD là bắt buộc";
-            if (!Regex.IsMatch(model.CCCD, "^\\d{6,20}$")) return "CCCD phải gồm 6-20 chữ số";
-            if (!string.IsNullOrWhiteSpace(model.SDT) && !Regex.IsMatch(model.SDT, "^(0\\d{9,10}|\\+84\\d{9,10})$")) return "Số điện thoại không đúng định dạng";
+            if (!Regex.IsMatch(model.CCCD, "^(\\d{9}|\\d{12})$")) return "CCCD phải gồm đúng 12 chữ số hoặc CMND cũ gồm đúng 9 chữ số";
+            if (!string.IsNullOrWhiteSpace(model.SDT) && !Regex.IsMatch(model.SDT, "^0\\d{9}$")) return "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0";
             if (!string.IsNullOrWhiteSpace(model.Email) && (!Regex.IsMatch(model.Email, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$") || model.Email.Length > 100)) return "Email không đúng định dạng";
             if (model.DiaChi?.Length > 255) return "Địa chỉ không được quá 255 ký tự";
             if (!string.IsNullOrWhiteSpace(model.PhongBan) && (!decimal.TryParse(model.PhongBan, out decimal departmentId) || departmentId <= 0)) return "Phòng ban phải là mã số dương";
