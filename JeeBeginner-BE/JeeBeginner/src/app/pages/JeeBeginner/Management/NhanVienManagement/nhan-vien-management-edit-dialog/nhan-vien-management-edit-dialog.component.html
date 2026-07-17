@@ -19,16 +19,19 @@
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-batbuoc mat-focused required" required matInput type="text" formControlName="MaNV" placeholder="Mã nhân viên *" />
+            <mat-error *ngIf="hasError('MaNV')">{{ getErrorMessage('MaNV') }}</mat-error>
           </mat-form-field>
         </div>
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-batbuoc mat-focused required" required matInput type="text" formControlName="HoTen" placeholder="Họ tên *" />
+            <mat-error *ngIf="hasError('HoTen')">{{ getErrorMessage('HoTen') }}</mat-error>
           </mat-form-field>
         </div>
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="tel" formControlName="SDT" placeholder="Số điện thoại" />
+            <mat-error *ngIf="hasError('SDT')">{{ getErrorMessage('SDT') }}</mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -37,16 +40,19 @@
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="text" formControlName="CCCD" placeholder="CCCD" />
+            <mat-error *ngIf="hasError('CCCD')">{{ getErrorMessage('CCCD') }}</mat-error>
           </mat-form-field>
         </div>
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="email" formControlName="Email" placeholder="Email" />
+            <mat-error *ngIf="hasError('Email')">{{ getErrorMessage('Email') }}</mat-error>
           </mat-form-field>
         </div>
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="text" formControlName="DiaChi" placeholder="Địa chỉ" />
+            <mat-error *ngIf="hasError('DiaChi')">{{ getErrorMessage('DiaChi') }}</mat-error>
           </mat-form-field>
         </div>
       </div>
@@ -55,11 +61,13 @@
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="text" formControlName="PhongBan" placeholder="Phòng ban" />
+            <mat-error *ngIf="hasError('PhongBan')">{{ getErrorMessage('PhongBan') }}</mat-error>
           </mat-form-field>
         </div>
         <div class="col-lg-4">
           <mat-form-field class="example-full-width">
             <input class="input-thuong mat-focused" matInput type="text" formControlName="ChucVu" placeholder="Chức vụ" />
+            <mat-error *ngIf="hasError('ChucVu')">{{ getErrorMessage('ChucVu') }}</mat-error>
           </mat-form-field>
         </div>
       </div>
