@@ -60,6 +60,9 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 string maNhanVien = (model.MaNV ?? string.Empty).Replace("'", "''");
                 DataTable duplicate = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE MaNV = N'{maNhanVien}'");
                 if (duplicate.Rows.Count > 0) return new ReturnSqlModel("Mã nhân viên đã tồn tại", "0");
+                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}'");
+                if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
@@ -80,6 +83,9 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             {
                 using DpsConnection cnn = new DpsConnection(_connectionString);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
+                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}' AND Id_NV <> {model.Id}");
+                if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 SqlConditions conditions = new SqlConditions();
                 conditions.Add("Id_NV", model.Id);
                 Hashtable values = Values(model, hoLot, ten, false);
@@ -104,12 +110,13 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             using DpsConnection cnn = new DpsConnection(_connectionString);
             DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, Holot, Ten, CMND
                 FROM dbo.Tbl_Nhanvien
-                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMNDHash IS NULL");
+                WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL
+                    OR CMND_Enc NOT LIKE 'RSAHYBRID:%'");
 
             int updated = 0;
             foreach (DataRow row in rows.Rows)
             {
-                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienAes(new NhanVienCryptoModel
+                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
                 {
                     I_Holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]),
                     I_Ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]),
@@ -121,6 +128,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                     { "Holot_Enc", encrypted.Holot_Enc },
                     { "Ten_Enc", encrypted.Ten_Enc },
                     { "CMND_Enc", encrypted.CMND_Enc },
+                    { "CMND_FPE", encrypted.CMND_FPE },
                     { "CMNDHash", encrypted.CMNDHash },
                     { "LastModified", DateTime.Now }
                 };
@@ -147,7 +155,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 
         private void AddEncryptedValues(Hashtable values, string hoLot, string ten, string cccd)
         {
-            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienAes(new NhanVienCryptoModel
+            NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
             {
                 I_Holot = hoLot,
                 I_Ten = ten,
@@ -157,6 +165,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             values.Add("Holot_Enc", encrypted.Holot_Enc);
             values.Add("Ten_Enc", encrypted.Ten_Enc);
             values.Add("CMND_Enc", encrypted.CMND_Enc);
+            values.Add("CMND_FPE", encrypted.CMND_FPE);
             values.Add("CMNDHash", encrypted.CMNDHash);
         }
 

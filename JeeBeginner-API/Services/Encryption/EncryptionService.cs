@@ -249,6 +249,27 @@ namespace JeeBeginner.Services.Encryption
             };
         }
 
+        public NhanVienCryptoModel EncryptNhanVienWithRsaAndFpeCccd(NhanVienCryptoModel model)
+        {
+            if (model == null) return null;
+
+            return new NhanVienCryptoModel
+            {
+                Id = model.Id,
+                I_Holot = model.I_Holot,
+                I_Ten = model.I_Ten,
+                I_CMND = model.I_CMND,
+                I_Sotaikhoan = model.I_Sotaikhoan,
+                Holot_Enc = EncryptAes(model.I_Holot),
+                Ten_Enc = EncryptAes(model.I_Ten),
+                CMND_Enc = EncryptRsa(model.I_CMND),
+                CMND_FPE = EncryptFpeDigits(model.I_CMND),
+                Sotaikhoan_Enc = model.Sotaikhoan_Enc,
+                CMNDHash = HashHmacSha256(model.I_CMND),
+                SotaikhoanHash = model.SotaikhoanHash
+            };
+        }
+
         public NhanVienCryptoModel EncryptNhanVienRsa(NhanVienCryptoModel model)
         {
             if (model == null) return null;

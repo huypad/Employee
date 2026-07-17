@@ -8,5 +8,8 @@ IF COL_LENGTH('dbo.Tbl_Nhanvien', 'Ten_Enc') IS NULL
 IF COL_LENGTH('dbo.Tbl_Nhanvien', 'CMND_Enc') IS NULL
     ALTER TABLE dbo.Tbl_Nhanvien ADD CMND_Enc NVARCHAR(MAX) NULL;
 
+IF COL_LENGTH('dbo.Tbl_Nhanvien', 'CMND_FPE') IS NULL
+    ALTER TABLE dbo.Tbl_Nhanvien ADD CMND_FPE NVARCHAR(50) NULL;
+
 IF COL_LENGTH('dbo.Tbl_Nhanvien', 'CMNDHash') IS NULL
     ALTER TABLE dbo.Tbl_Nhanvien ADD CMNDHash NVARCHAR(128) NULL;

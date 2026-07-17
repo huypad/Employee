@@ -15,6 +15,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace JeeBeginner.Controllers
@@ -66,14 +67,14 @@ namespace JeeBeginner.Controllers
         [HttpGet("GetNhanVienById")]
         public async Task<object> GetNhanVienById(int id) { try { NhanVienModel data = await _service.GetNhanVienById(id); return data is null ? JsonResultCommon.KhongTonTai(id.ToString()) : JsonResultCommon.ThanhCong(data); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
         [HttpPost("CreateNhanVien")]
-        public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) { try { if (string.IsNullOrWhiteSpace(model?.MaNV)) return JsonResultCommon.BatBuoc("Mã nhân viên"); if (string.IsNullOrWhiteSpace(model.HoTen)) return JsonResultCommon.BatBuoc("Họ tên"); ReturnSqlModel result = await _service.CreateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+        public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) { try { string validationError = ValidateNhanVien(model, false); if (validationError != null) return JsonResultCommon.Custom(validationError); ReturnSqlModel result = await _service.CreateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
         [HttpPost("ImportNhanVien")]
         public async Task<object> ImportNhanVien([FromBody] NhanVienModel model)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(model?.MaNV)) return JsonResultCommon.BatBuoc("Mã nhân viên");
-                if (string.IsNullOrWhiteSpace(model.HoTen)) return JsonResultCommon.BatBuoc("Họ tên");
+                string validationError = ValidateNhanVien(model, false);
+                if (validationError != null) return JsonResultCommon.Custom(validationError);
                 ReturnSqlModel result = await _service.CreateNhanVien(model);
                 return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage);
             }
@@ -149,6 +150,12 @@ namespace JeeBeginner.Controllers
                         PhongBan = GetCell(sheet, rowNumber, columns, "PHONGBAN"),
                         ChucVu = GetCell(sheet, rowNumber, columns, "CHUCVU")
                     };
+                    string validationError = ValidateNhanVien(model, false);
+                    if (validationError != null)
+                    {
+                        errors.Add(new { row = rowNumber, message = validationError });
+                        continue;
+                    }
                     ReturnSqlModel result = await _service.CreateNhanVien(model);
                     if (result.Susscess) success++;
                     else errors.Add(new { row = rowNumber, message = result.ErrorMessgage });
@@ -160,7 +167,7 @@ namespace JeeBeginner.Controllers
         }
 
         [HttpPost("UpdateNhanVien")]
-        public async Task<object> UpdateNhanVien([FromBody] NhanVienModel model) { try { if (model?.Id <= 0) return JsonResultCommon.BatBuoc("Id"); ReturnSqlModel result = await _service.UpdateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+        public async Task<object> UpdateNhanVien([FromBody] NhanVienModel model) { try { string validationError = ValidateNhanVien(model, true); if (validationError != null) return JsonResultCommon.Custom(validationError); ReturnSqlModel result = await _service.UpdateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
         [HttpGet("DeleteNhanVien/{id}")]
         public async Task<object> DeleteNhanVien(int id) { try { ReturnSqlModel result = await _service.DeleteNhanVien(id); return result.Susscess ? JsonResultCommon.ThanhCong(id) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
         [HttpGet("UpdateLock/{id}")]
@@ -213,6 +220,34 @@ namespace JeeBeginner.Controllers
                 if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark && char.IsLetterOrDigit(character))
                     result.Append(character);
             return result.ToString().Replace('Đ', 'D').Replace('đ', 'd').ToUpperInvariant();
+        }
+
+        private static string ValidateNhanVien(NhanVienModel model, bool isUpdate)
+        {
+            if (model == null) return "Dữ liệu nhân viên là bắt buộc";
+            if (isUpdate && model.Id <= 0) return "Id nhân viên không hợp lệ";
+
+            model.MaNV = model.MaNV?.Trim().ToUpperInvariant();
+            model.HoTen = Regex.Replace(model.HoTen ?? string.Empty, @"\s+", " ").Trim();
+            model.SDT = model.SDT?.Trim();
+            model.CCCD = model.CCCD?.Trim();
+            model.Email = model.Email?.Trim();
+            model.DiaChi = model.DiaChi?.Trim();
+            model.PhongBan = model.PhongBan?.Trim();
+            model.ChucVu = model.ChucVu?.Trim();
+
+            if (string.IsNullOrWhiteSpace(model.MaNV)) return "Mã nhân viên là bắt buộc";
+            if (!Regex.IsMatch(model.MaNV, "^NV\\d{1,10}$", RegexOptions.IgnoreCase)) return "Mã nhân viên phải có tiền tố NV, theo sau là chữ số (ví dụ: NV105)";
+            if (model.HoTen.Length < 2 || model.HoTen.Length > 100) return "Họ tên phải từ 2 đến 100 ký tự";
+            if (string.IsNullOrWhiteSpace(model.CCCD)) return "CCCD là bắt buộc";
+            if (!Regex.IsMatch(model.CCCD, "^(\\d{9}|\\d{12})$")) return "CCCD phải gồm đúng 12 chữ số hoặc CMND cũ gồm đúng 9 chữ số";
+            if (!string.IsNullOrWhiteSpace(model.SDT) && !Regex.IsMatch(model.SDT, "^0\\d{9}$")) return "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0";
+            if (!string.IsNullOrWhiteSpace(model.Email) && (!Regex.IsMatch(model.Email, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$") || model.Email.Length > 100)) return "Email không đúng định dạng";
+            if (model.DiaChi?.Length > 255) return "Địa chỉ không được quá 255 ký tự";
+            if (!string.IsNullOrWhiteSpace(model.PhongBan) && (!decimal.TryParse(model.PhongBan, out decimal departmentId) || departmentId <= 0)) return "Phòng ban phải là mã số dương";
+            if (model.ChucVu?.Length > 100) return "Chức vụ không được quá 100 ký tự";
+
+            return null;
         }
     }
 }
