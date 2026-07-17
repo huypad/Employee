@@ -249,7 +249,7 @@ namespace JeeBeginner.Services.Encryption
             };
         }
 
-        public NhanVienCryptoModel EncryptNhanVienWithAesAndFpeCccd(NhanVienCryptoModel model)
+        public NhanVienCryptoModel EncryptNhanVienWithRsaAndFpeCccd(NhanVienCryptoModel model)
         {
             if (model == null) return null;
 
@@ -262,7 +262,7 @@ namespace JeeBeginner.Services.Encryption
                 I_Sotaikhoan = model.I_Sotaikhoan,
                 Holot_Enc = EncryptAes(model.I_Holot),
                 Ten_Enc = EncryptAes(model.I_Ten),
-                CMND_Enc = EncryptAes(model.I_CMND),
+                CMND_Enc = EncryptRsa(model.I_CMND),
                 CMND_FPE = EncryptFpeDigits(model.I_CMND),
                 Sotaikhoan_Enc = model.Sotaikhoan_Enc,
                 CMNDHash = HashHmacSha256(model.I_CMND),
