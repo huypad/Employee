@@ -60,6 +60,9 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 string maNhanVien = (model.MaNV ?? string.Empty).Replace("'", "''");
                 DataTable duplicate = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE MaNV = N'{maNhanVien}'");
                 if (duplicate.Rows.Count > 0) return new ReturnSqlModel("Mã nhân viên đã tồn tại", "0");
+                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}'");
+                if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
@@ -80,6 +83,9 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             {
                 using DpsConnection cnn = new DpsConnection(_connectionString);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
+                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}' AND Id_NV <> {model.Id}");
+                if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 SqlConditions conditions = new SqlConditions();
                 conditions.Add("Id_NV", model.Id);
                 Hashtable values = Values(model, hoLot, ten, false);
