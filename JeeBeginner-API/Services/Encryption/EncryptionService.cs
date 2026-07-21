@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JeeBeginner.Services.Encryption
 {
@@ -157,6 +158,12 @@ namespace JeeBeginner.Services.Encryption
             return $"{HmacSha256Prefix}:{Convert.ToBase64String(hashBytes)}";
         }
 
+        public string HashSearchIndex(string plainText)
+        {
+            string normalized = NormalizeSearchIndexValue(plainText);
+            return string.IsNullOrWhiteSpace(normalized) ? null : HashHmacSha256(normalized);
+        }
+
 
         public string EncryptFpeDigits(string plainText)
         {
@@ -225,8 +232,8 @@ namespace JeeBeginner.Services.Encryption
                 Ten_Enc = EncryptAes(model.I_Ten),
                 CMND_Enc = EncryptAes(model.I_CMND),
                 Sotaikhoan_Enc = EncryptAes(model.I_Sotaikhoan),
-                CMNDHash = HashHmacSha256(model.I_CMND),
-                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
+                CMNDHash = HashSearchIndex(model.I_CMND),
+                SotaikhoanHash = HashSearchIndex(model.I_Sotaikhoan)
             };
         }
 
@@ -265,7 +272,7 @@ namespace JeeBeginner.Services.Encryption
                 CMND_Enc = EncryptRsa(model.I_CMND),
                 CMND_FPE = EncryptFpeDigits(model.I_CMND),
                 Sotaikhoan_Enc = model.Sotaikhoan_Enc,
-                CMNDHash = HashHmacSha256(model.I_CMND),
+                CMNDHash = HashSearchIndex(model.I_CMND),
                 SotaikhoanHash = model.SotaikhoanHash
             };
         }
@@ -284,8 +291,8 @@ namespace JeeBeginner.Services.Encryption
                 Ten_Enc = EncryptRsa(model.I_Ten),
                 CMND_Enc = EncryptRsa(model.I_CMND),
                 Sotaikhoan_Enc = EncryptRsa(model.I_Sotaikhoan),
-                CMNDHash = HashHmacSha256(model.I_CMND),
-                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
+                CMNDHash = HashSearchIndex(model.I_CMND),
+                SotaikhoanHash = HashSearchIndex(model.I_Sotaikhoan)
             };
         }
 
@@ -322,8 +329,8 @@ namespace JeeBeginner.Services.Encryption
                 Ten_Enc = model.Ten_Enc,
                 CMND_Enc = EncryptFpeDigits(model.I_CMND),
                 Sotaikhoan_Enc = EncryptFpeDigits(model.I_Sotaikhoan),
-                CMNDHash = HashHmacSha256(model.I_CMND),
-                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
+                CMNDHash = HashSearchIndex(model.I_CMND),
+                SotaikhoanHash = HashSearchIndex(model.I_Sotaikhoan)
             };
         }
 
@@ -352,18 +359,27 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
-                I_Holot = model.I_Holot,
-                I_Ten = model.I_Ten,
-                I_CMND = model.I_CMND,
-                I_Sotaikhoan = model.I_Sotaikhoan,
+                I_Holot = HashSearchIndex(model.I_Holot),
+                I_Ten = HashSearchIndex(model.I_Ten),
+                I_CMND = HashSearchIndex(model.I_CMND),
+                I_Sotaikhoan = HashSearchIndex(model.I_Sotaikhoan),
                 Holot_Enc = model.Holot_Enc,
                 Ten_Enc = model.Ten_Enc,
                 CMND_Enc = model.CMND_Enc,
                 Sotaikhoan_Enc = model.Sotaikhoan_Enc,
-                CMNDHash = HashHmacSha256(model.I_CMND),
-                SotaikhoanHash = HashHmacSha256(model.I_Sotaikhoan)
+                CMNDHash = HashSearchIndex(model.I_CMND),
+                SotaikhoanHash = HashSearchIndex(model.I_Sotaikhoan)
             };
         }
+        private static string NormalizeSearchIndexValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+
+            string normalized = value.Normalize(NormalizationForm.FormC).Trim();
+            normalized = Regex.Replace(normalized, @"\s+", " ");
+            return normalized.ToUpperInvariant();
+        }
+
         private string ProcessFpe(string value, string alphabet, bool encrypt)
         {
             if (value == null) return null;
