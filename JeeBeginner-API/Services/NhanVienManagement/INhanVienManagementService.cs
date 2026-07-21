@@ -16,6 +16,7 @@ namespace JeeBeginner.Services.NhanVienManagement
         Task<ReturnSqlModel> UpdateUnLock(int id);
         Task<int> EncryptExistingNhanViens();
 
-        Task<IEnumerable<NhanVienModel>> SearchAllEncrypted(string plainKeyword, string hashedKeyword);
+       
+        Task<IEnumerable<NhanVienModel>> SearchNhanVien(string keyword);
     }
 }

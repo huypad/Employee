@@ -41,24 +41,7 @@ namespace JeeBeginner.Controllers
             _encryptionService = encryptionService;
         }
 
-        [HttpGet("SearchAllEncrypted")]
-        public async Task<ActionResult> SearchAllEncrypted([FromQuery] string keyword)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(keyword))
-                    return BadRequest(JsonResultCommon.BatBuoc("keyword"));
-
-                string hashedKeyword = _encryptionService.HashSearchIndex(keyword);
-                IEnumerable<NhanVienModel> data = await _service.SearchAllEncrypted(keyword, hashedKeyword);
-
-                return Ok(JsonResultCommon.ThanhCong(data ?? Enumerable.Empty<NhanVienModel>()));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(JsonResultCommon.Exception(ex));
-            }
-        }
+        
 
         [HttpGet("Get_DSNhanVien")]
         public async Task<ActionResult> Get_DSNhanVien([FromQuery] QueryParams query)
@@ -77,7 +60,7 @@ namespace JeeBeginner.Controllers
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
                     string k = keyword.Replace("'", "''");
-                    where += $@" AND (MaNV LIKE N'%{k}%' OR Holot LIKE N'%{k}%' OR Ten LIKE N'%{k}%' OR Mobile LIKE N'%{k}%' OR CMND LIKE N'%{k}%' OR Email LIKE N'%{k}%')";
+                    where += $@" AND (MaNV LIKE N'%{k}%' OR Holot LIKE N'%{k}%' OR Ten LIKE N'%{k}%' OR Mobile LIKE N'%{k}%' OR CMND LIKE N'%{k}%' OR Sotaikhoan LIKE N'%{k}%' OR Email LIKE N'%{k}%')";
                 }
                 if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
                 if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
@@ -277,6 +260,23 @@ namespace JeeBeginner.Controllers
             if (model.ChucVu?.Length > 100) return "Chức vụ không được quá 100 ký tự";
 
             return null;
+        }
+        [HttpGet("search")]
+        public async Task<object> Search([FromQuery] string keyword)
+        {
+            try
+            {
+                var result = await _service.SearchNhanVien(keyword);
+
+                if (result == null)
+                    return JsonResultCommon.KhongTonTai("Dữ liệu");
+
+                return JsonResultCommon.ThanhCong(result);
+            }
+            catch (Exception ex)
+            {
+                return JsonResultCommon.Exception(ex);
+            }
         }
     }
 }
