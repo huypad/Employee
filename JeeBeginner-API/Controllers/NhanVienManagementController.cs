@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using JeeBeginner.Services.Encryption;
 
 namespace JeeBeginner.Controllers
 {
@@ -28,11 +29,19 @@ namespace JeeBeginner.Controllers
     {
         private readonly INhanVienManagementService _service;
         private readonly string _jwtSecret;
-        public NhanVienManagementController(INhanVienManagementService service, IConfiguration configuration)
+        private readonly IEncryptionService _encryptionService;
+
+        public NhanVienManagementController(
+            INhanVienManagementService service,
+            IConfiguration configuration,
+            IEncryptionService encryptionService)
         {
             _service = service;
             _jwtSecret = configuration.GetValue<string>("JWT:Secret");
+            _encryptionService = encryptionService;
         }
+
+        
 
         [HttpGet("Get_DSNhanVien")]
         public async Task<ActionResult> Get_DSNhanVien([FromQuery] QueryParams query)
@@ -51,10 +60,11 @@ namespace JeeBeginner.Controllers
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
                     string k = keyword.Replace("'", "''");
-                    where += $@" AND (MaNV LIKE N'%{k}%' OR Holot LIKE N'%{k}%' OR Ten LIKE N'%{k}%' OR Mobile LIKE N'%{k}%' OR CMND LIKE N'%{k}%' OR Email LIKE N'%{k}%')";
+                    where += $@" AND (MaNV LIKE N'%{k}%' OR Holot LIKE N'%{k}%' OR Ten LIKE N'%{k}%' OR Mobile LIKE N'%{k}%' OR CMND LIKE N'%{k}%' OR Sotaikhoan LIKE N'%{k}%' OR Email LIKE N'%{k}%')";
                 }
                 if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
                 if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
+
                 IEnumerable<NhanVienModel> all = await _service.Get_DSNhanVien(where, "Id_NV DESC") ?? Enumerable.Empty<NhanVienModel>();
                 int total = all.Count();
                 PageModel page = new PageModel { TotalCount = total, AllPage = (int)Math.Ceiling(total / (decimal)query.record), Size = query.record, Page = query.page };
@@ -66,8 +76,10 @@ namespace JeeBeginner.Controllers
 
         [HttpGet("GetNhanVienById")]
         public async Task<object> GetNhanVienById(int id) { try { NhanVienModel data = await _service.GetNhanVienById(id); return data is null ? JsonResultCommon.KhongTonTai(id.ToString()) : JsonResultCommon.ThanhCong(data); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+
         [HttpPost("CreateNhanVien")]
         public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) { try { string validationError = ValidateNhanVien(model, false); if (validationError != null) return JsonResultCommon.Custom(validationError); ReturnSqlModel result = await _service.CreateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+
         [HttpPost("ImportNhanVien")]
         public async Task<object> ImportNhanVien([FromBody] NhanVienModel model)
         {
@@ -248,6 +260,23 @@ namespace JeeBeginner.Controllers
             if (model.ChucVu?.Length > 100) return "Chức vụ không được quá 100 ký tự";
 
             return null;
+        }
+        [HttpGet("search")]
+        public async Task<object> Search([FromQuery] string keyword)
+        {
+            try
+            {
+                var result = await _service.SearchNhanVien(keyword);
+
+                if (result == null)
+                    return JsonResultCommon.KhongTonTai("Dữ liệu");
+
+                return JsonResultCommon.ThanhCong(result);
+            }
+            catch (Exception ex)
+            {
+                return JsonResultCommon.Exception(ex);
+            }
         }
     }
 }

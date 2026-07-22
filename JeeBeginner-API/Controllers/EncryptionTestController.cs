@@ -55,6 +55,12 @@ namespace JeeBeginner.Controllers
             return ProcessField(request, "HMAC-SHA256", "HASH", _encryptionService.HashHmacSha256);
         }
 
+        [HttpPost("hmacsha256/field/index")]
+        public object HashSearchIndexField([FromBody] FieldCryptoRequest request)
+        {
+            return ProcessField(request, "HMAC-SHA256", "INDEX_HASH", _encryptionService.HashSearchIndex);
+        }
+
         [HttpPost("fpe/field/encrypt")]
         public object EncryptFpeField([FromBody] FieldCryptoRequest request)
         {
@@ -114,6 +120,12 @@ namespace JeeBeginner.Controllers
         public object HashHmacSha256NhanVien([FromBody] NhanVienCryptoModel request)
         {
             return ProcessNhanVien(request, "HMAC-SHA256", "HASH", _encryptionService.HashNhanVienHmacSha256);
+        }
+
+        [HttpPost("hmacsha256/nhanvien/index")]
+        public object HashSearchIndexNhanVien([FromBody] NhanVienCryptoModel request)
+        {
+            return ProcessNhanVien(request, "HMAC-SHA256", "INDEX_HASH", _encryptionService.HashNhanVienHmacSha256);
         }
 
         private object ProcessField(FieldCryptoRequest request, string algorithm, string operation, Func<string, string> handler)

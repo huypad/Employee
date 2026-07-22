@@ -11,6 +11,7 @@ namespace JeeBeginner.Services.Encryption
         string DecryptRsa(string cipherText);
 
         string HashHmacSha256(string plainText);
+        string HashSearchIndex(string plainText);
         string EncryptFpeDigits(string plainText);
         string DecryptFpeDigits(string cipherText);
 
