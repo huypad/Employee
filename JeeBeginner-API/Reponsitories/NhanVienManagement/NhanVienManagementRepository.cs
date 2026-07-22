@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
@@ -67,11 +68,9 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
-                Hashtable values = Values(model, hoLot, ten, true);
-                AddEncryptedValues(values, hoLot, ten, model.CCCD, model.SoTaiKhoan);
-                values.Add("Id_NV", nextId);
-                int result = cnn.Insert(values, TableName);
-                if (result <= 0) return new ReturnSqlModel(cnn.LastError.ToString(), "0");
+                NhanVienCryptoModel enc = Encrypt(hoLot, ten, model.CCCD, model.SoTaiKhoan);
+                string sql = RawInsertSql(nextId, model, hoLot, ten, enc);
+                cnn.ExecuteNonQuery(sql);
                 model.Id = nextId;
                 return new ReturnSqlModel();
             }
@@ -87,15 +86,59 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
                 DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}' AND Id_NV <> {model.Id}");
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
-                SqlConditions conditions = new SqlConditions();
-                conditions.Add("Id_NV", model.Id);
-                Hashtable values = Values(model, hoLot, ten, false);
-                AddEncryptedValues(values, hoLot, ten, model.CCCD, model.SoTaiKhoan);
-                int result = cnn.Update(values, conditions, TableName);
-                return result <= 0 ? new ReturnSqlModel(cnn.LastError.ToString(), "0") : new ReturnSqlModel();
+                NhanVienCryptoModel enc = Encrypt(hoLot, ten, model.CCCD, model.SoTaiKhoan);
+                string sql = RawUpdateSql(model.Id, model, hoLot, ten, enc);
+                cnn.ExecuteNonQuery(sql);
+                return new ReturnSqlModel();
             }
             catch (Exception ex) { return new ReturnSqlModel(ex.Message, "0"); }
         }
+
+        private NhanVienCryptoModel Encrypt(string hoLot, string ten, string cccd, string soTaiKhoan) =>
+            _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
+            { I_Holot = hoLot, I_Ten = ten, I_CMND = cccd, I_Sotaikhoan = soTaiKhoan });
+
+        private string RawInsertSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
+        {
+            string now = $"'{DateTime.Now:yyyy-MM-dd HH:mm:ss}'";
+            return $@"INSERT INTO dbo.{TableName}
+(Id_NV,MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,Thuongtru_diachi,Id_bp,Tenchucvu,
+ LastModified,Status,Disable,DateCreated,
+ Holot_Enc,Ten_Enc,CMND_Enc,CMND_FPE,CMNDHash,SotaikhoanHash,
+ I_Holot,I_Ten,I_CMND,I_Sotaikhoan)
+VALUES(
+ {id},{S(m.MaNV)},{S(hoLot)},{S(ten)},{S(m.SDT)},{S(m.CCCD)},{SN(m.SoTaiKhoan)},{SN(m.Email)},
+ {SN(m.DiaChi)},{Dec(m.PhongBan)},{SN(m.ChucVu)},
+ {now},1,0,{now},
+ {S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},{SN(enc.SotaikhoanHash)},
+ {Hex(m.CCCD != null ? hoLot : null)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)})";
+        }
+
+        private string RawUpdateSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
+        {
+            string now = $"'{DateTime.Now:yyyy-MM-dd HH:mm:ss}'";
+            return $@"UPDATE dbo.{TableName} SET
+ MaNV={S(m.MaNV)},Holot={S(hoLot)},Ten={S(ten)},Mobile={S(m.SDT)},CMND={S(m.CCCD)},
+ Sotaikhoan={SN(m.SoTaiKhoan)},Email={SN(m.Email)},Thuongtru_diachi={SN(m.DiaChi)},
+ Id_bp={Dec(m.PhongBan)},Tenchucvu={SN(m.ChucVu)},LastModified={now},
+ Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
+ CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},SotaikhoanHash={SN(enc.SotaikhoanHash)},
+ I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)}
+WHERE Id_NV={id}";
+        }
+
+        // Helpers xây SQL literal
+        private static string S(string val)  => val == null ? "NULL" : $"N'{val.Replace("'", "''")}'";
+        private static string SN(string val) => string.IsNullOrWhiteSpace(val) ? "NULL" : $"N'{val.Replace("'", "''")}'";
+        private static string Dec(string val) => decimal.TryParse(val, out decimal d) ? d.ToString() : "NULL";
+        private string Hex(string val)
+        {
+            string hash = _encryptionService.HashSearchIndex(val);
+            if (hash == null) return "NULL";
+            byte[] bytes = Encoding.UTF8.GetBytes(hash);
+            return bytes.Length == 0 ? "NULL" : "0x" + BitConverter.ToString(bytes).Replace("-", "");
+        }
+
 
         public async Task<ReturnSqlModel> DeleteNhanVien(int id)
         {
@@ -117,50 +160,29 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 
             int updated = 0;
 
-            // Hàm hỗ trợ ép byte cho gọn code
-            object GetBytesSafe(string val) => val == null ? DBNull.Value : (object)Encoding.UTF8.GetBytes(val);
-
             foreach (DataRow row in rows.Rows)
             {
                 string holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]);
                 string ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]);
                 string cmnd = row["CMND"] == DBNull.Value ? null : Convert.ToString(row["CMND"]);
                 string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
+                int id = Convert.ToInt32(row["Id_NV"]);
 
-                NhanVienCryptoModel encrypted = _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
-                {
-                    I_Holot = holot,
-                    I_Ten = ten,
-                    I_CMND = cmnd,
-                    I_Sotaikhoan = sotaikhoan
-                });
-
-                Hashtable values = new Hashtable
-        {
-            // Các cột NVARCHAR
-            { "Holot_Enc", encrypted.Holot_Enc ?? (object)DBNull.Value },
-            { "Ten_Enc", encrypted.Ten_Enc ?? (object)DBNull.Value },
-            { "CMND_Enc", encrypted.CMND_Enc ?? (object)DBNull.Value },
-            { "CMND_FPE", encrypted.CMND_FPE ?? (object)DBNull.Value },
-            { "CMNDHash", encrypted.CMNDHash ?? (object)DBNull.Value },
-            { "SotaikhoanHash", encrypted.SotaikhoanHash ?? (object)DBNull.Value },
-
-            // Các cột VARBINARY
-            { "I_Holot", GetBytesSafe(_encryptionService.HashSearchIndex(holot)) },
-            { "I_Ten", GetBytesSafe(_encryptionService.HashSearchIndex(ten)) },
-            { "I_CMND", GetBytesSafe(_encryptionService.HashSearchIndex(cmnd)) },
-            { "I_Sotaikhoan", GetBytesSafe(_encryptionService.HashSearchIndex(sotaikhoan)) },
-
-            { "LastModified", DateTime.Now }
-        };
-
-                SqlConditions conditions = new SqlConditions();
-                conditions.Add("Id_NV", Convert.ToInt32(row["Id_NV"]));
-                if (cnn.Update(values, conditions, TableName) > 0) updated++;
+                NhanVienCryptoModel enc = Encrypt(holot, ten, cmnd, sotaikhoan);
+                string sql = $@"UPDATE dbo.{TableName} SET
+                    Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
+                    CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},SotaikhoanHash={SN(enc.SotaikhoanHash)},
+                    I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},
+                    LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}'
+                WHERE Id_NV={id}";
+                cnn.ExecuteNonQuery(sql);
+                updated++;
             }
 
             return updated;
         }
+
+
 
         private async Task<ReturnSqlModel> UpdateStatus(int id, int status)
         {
@@ -188,9 +210,6 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             // Hàm hỗ trợ gán cột NVARCHAR (Chuỗi bình thường)
             void AddString(string key, string val) => values.Add(key, val == null ? DBNull.Value : (object)val);
 
-            // Hàm hỗ trợ gán cột VARBINARY (Ép chuỗi thành mảng byte)
-            void AddVarbinary(string key, string val) => values.Add(key, val == null ? DBNull.Value : (object)Encoding.UTF8.GetBytes(val));
-
             // 1. Các cột kiểu NVARCHAR
             AddString("Holot_Enc", encrypted.Holot_Enc);
             AddString("Ten_Enc", encrypted.Ten_Enc);
@@ -199,12 +218,14 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             AddString("CMNDHash", encrypted.CMNDHash);
             AddString("SotaikhoanHash", encrypted.SotaikhoanHash);
 
-            // 2. Các cột kiểu VARBINARY (Phải ép sang mảng byte)
-            AddVarbinary("I_Holot", _encryptionService.HashSearchIndex(hoLot));
-            AddVarbinary("I_Ten", _encryptionService.HashSearchIndex(ten));
-            AddVarbinary("I_CMND", _encryptionService.HashSearchIndex(cccd));
-            AddVarbinary("I_Sotaikhoan", _encryptionService.HashSearchIndex(soTaiKhoan));
+            // 2. Các cột VARBINARY — phải khai báo rõ DBNull để DPS không tự điền NVARCHAR
+            // (UpdateBinaryIndexes sẽ ghi đúng giá trị byte sau khi Insert/Update hoàn tất)
+            values["I_Holot"]      = DBNull.Value;
+            values["I_Ten"]        = DBNull.Value;
+            values["I_CMND"]       = DBNull.Value;
+            values["I_Sotaikhoan"] = DBNull.Value;
         }
+
 
         private static NhanVienModel MapNhanVien(DataRow r) => new NhanVienModel { Id = r["Id"] == DBNull.Value ? 0 : Convert.ToInt32(r["Id"]), MaNV = Convert.ToString(r["MaNV"]), HoTen = Convert.ToString(r["HoTen"]), SDT = Convert.ToString(r["SDT"]), CCCD = Convert.ToString(r["CCCD"]), SoTaiKhoan = Convert.ToString(r["SoTaiKhoan"]), Email = Convert.ToString(r["Email"]), DiaChi = Convert.ToString(r["DiaChi"]), PhongBan = Convert.ToString(r["PhongBan"]), ChucVu = Convert.ToString(r["ChucVu"]), Status = r["Status"] == DBNull.Value ? 1 : Convert.ToInt32(r["Status"]), CreatedDate = r["CreatedDate"] == DBNull.Value ? string.Empty : Convert.ToDateTime(r["CreatedDate"]).ToString("dd/MM/yyyy HH:mm:ss") };
         private static void SplitHoTen(string value, out string hoLot, out string ten) { value = (value ?? string.Empty).Trim(); int i = value.LastIndexOf(' '); hoLot = i <= 0 ? string.Empty : value.Substring(0, i).Trim(); ten = i <= 0 ? value : value.Substring(i + 1).Trim(); }
