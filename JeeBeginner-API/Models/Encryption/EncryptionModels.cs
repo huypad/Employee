@@ -13,6 +13,7 @@ namespace JeeBeginner.Models.Encryption
         public string Operation { get; set; }
         public string InputValue { get; set; }
         public string OutputValue { get; set; }
+        public double ServerExecutionTimeMs { get; set; }
     }
 
     public class NhanVienCryptoModel

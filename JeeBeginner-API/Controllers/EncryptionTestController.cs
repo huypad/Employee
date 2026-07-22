@@ -121,8 +121,9 @@ namespace JeeBeginner.Controllers
             try
             {
                 if (request == null) return JsonResultCommon.BatBuoc("request");
-
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 string output = handler(request.Value);
+                sw.Stop();
 
                 return JsonResultCommon.ThanhCong(new FieldCryptoResponse
                 {
@@ -130,7 +131,8 @@ namespace JeeBeginner.Controllers
                     Algorithm = algorithm,
                     Operation = operation,
                     InputValue = request.Value,
-                    OutputValue = output
+                    OutputValue = output,
+                    ServerExecutionTimeMs = sw.Elapsed.TotalMilliseconds 
                 });
             }
             catch (Exception ex)

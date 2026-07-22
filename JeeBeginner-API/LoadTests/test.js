@@ -24,19 +24,24 @@ export const options = {
 
 const HOST = 'https://localhost:1404';
 
-// Custom metrics - tách riêng latency của từng loại thao tác để so sánh
+// Custom metrics - đo từ phía CLIENT (round-trip, gồm cả network/serialize)
 const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
 const hashTrend = new Trend('hash_duration_ms');
 
+// Custom metrics - đo từ phía SERVER (Stopwatch bọc sát quanh đúng dòng gọi
+// thuật toán trong ProcessField(), KHÔNG tính network/serialize/overhead HTTP)
+const encryptServerTrend = new Trend('encrypt_server_ms');
+const decryptServerTrend = new Trend('decrypt_server_ms');
+const hashServerTrend = new Trend('hash_server_ms');
+
+// BỘ DỮ LIỆU GIẢ LẬP CỐ ĐỊNH, đọc từ file test-data-200.json
 const testData = new SharedArray('test-data-200', function () {
   return JSON.parse(open('./test-data-200.json'));
 });
 
 function pickRecord() {
-  // Chọn xoay vòng tuần tự (round-robin) theo __VU (số thứ tự VU) và __ITER (số lần lặp)
-  // thay vì random - đảm bảo tái lập được y hệt thứ tự dữ liệu qua nhiều lần chạy khác nhau
-  const idx = (__VU * 997 + __ITER) % testData.length;
+  const idx = (__VU * 1000 + __ITER) % testData.length;
   return { fieldName: testData[idx].fieldName, value: testData[idx].value };
 }
 
@@ -47,11 +52,20 @@ function commonParams() {
   };
 }
 
+// Lấy ServerExecutionTimeMs mà server trả về trong response (Stopwatch bọc sát thuật toán)
+function getServerTimeMs(res) {
+  try {
+    return JSON.parse(res.body).data.ServerExecutionTimeMs;
+  } catch {
+    return null;
+  }
+}
+
 export default function () {
   const { fieldName, value } = pickRecord();
   const params = commonParams();
 
-  // TRƯỜNG HỢP PLAINTEXT: không mã hóa, chỉ 1 endpoint
+  // TRƯỜNG HỢP PLAINTEXT
   if (ALGO === 'plaintext') {
     const url = `${HOST}/api/encryptiontest/plaintext/field`;
     const res = http.post(url, JSON.stringify({ fieldName, value }), params);
@@ -60,14 +74,16 @@ export default function () {
     return;
   }
 
-  // TRƯỜNG HỢP HASH (HMAC-SHA256): CHỈ 1 CHIỀU, không có decrypt/round-trip
-  // vì hash không thể đảo ngược lại giá trị gốc theo đúng bản chất thuật toán
+  // TRƯỜNG HỢP HASH (HMAC-SHA256): CHỈ 1 CHIỀU
   if (ALGO === 'hash') {
     const url = `${HOST}/api/encryptiontest/hmacsha256/field/hash`;
     const res = http.post(url, JSON.stringify({ fieldName, value }), params);
 
     check(res, { 'hash status 200': (r) => r.status === 200 });
     hashTrend.add(res.timings.duration, { algorithm: 'hash', field: fieldName });
+
+    const serverMs = getServerTimeMs(res);
+    if (serverMs !== null) hashServerTrend.add(serverMs, { algorithm: 'hash', field: fieldName });
 
     sleep(1);
     return;
@@ -81,6 +97,9 @@ export default function () {
     'encrypt status 200': (r) => r.status === 200,
   });
   encryptTrend.add(encryptRes.timings.duration, { algorithm: ALGO, field: fieldName });
+
+  const encryptServerMs = getServerTimeMs(encryptRes);
+  if (encryptServerMs !== null) encryptServerTrend.add(encryptServerMs, { algorithm: ALGO, field: fieldName });
 
   if (!encryptOk) {
     sleep(1);
@@ -105,6 +124,9 @@ export default function () {
   });
   decryptTrend.add(decryptRes.timings.duration, { algorithm: ALGO, field: fieldName });
 
+  const decryptServerMs = getServerTimeMs(decryptRes);
+  if (decryptServerMs !== null) decryptServerTrend.add(decryptServerMs, { algorithm: ALGO, field: fieldName });
+
   sleep(1);
 }
 
@@ -114,6 +136,6 @@ export default function () {
 //   k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=results_hash_200vu.json test.js
 // (tương tự cho plaintext / aes / rsa / fpe)
 //
-// Kết quả in ra sẽ có dòng riêng:
-//   hash_duration_ms.......: avg=...
-// để so sánh Hash với Encrypt/Decrypt của AES/RSA/FPE.
+// Kết quả in ra sẽ có 2 nhóm chỉ số riêng biệt để so sánh:
+//   encrypt_duration_ms....: đo từ CLIENT (round-trip, gồm cả network)
+//   encrypt_server_ms......: đo từ SERVER (bọc sát thuật toán, không tính network)

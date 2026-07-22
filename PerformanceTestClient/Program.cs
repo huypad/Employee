@@ -8,10 +8,22 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace PerformanceTestClient
 {
-
+    /// <summary>
+    /// Dùng System.Diagnostics.Stopwatch để đo thời gian Encrypt/Decrypt.
+    /// Ghi lại SONG SONG 2 con số cho mỗi lần gọi:
+    ///   - ClientRoundTripMs: đo từ phía client (Stopwatch bọc quanh HTTP call) -
+    ///     bao gồm cả network, serialize JSON, overhead ASP.NET Core.
+    ///   - ServerExecutionMs: server tự đo (Stopwatch bọc SÁT quanh đúng dòng gọi
+    ///     thuật toán trong ProcessField() bên EncryptionTestController.cs), trả về
+    ///     kèm trong response - đây là thời gian THUẦN của riêng thuật toán,
+    ///     không lẫn network/overhead.
+    ///
+    /// Ghi log: dùng Serilog + Async sink (hàng đợi trong bộ nhớ, ghi đĩa ở luồng nền).
+    /// </summary>
     public static class Program
     {
         private const string Host = "https://localhost:1404";
@@ -20,132 +32,167 @@ namespace PerformanceTestClient
 
         public static async Task Main(string[] args)
         {
-            // Cách chạy: dotnet run -- <algorithm> <soLanGoi>
-            // Ví dụ:     dotnet run -- aes 20   => gọi AES 20 lần liên tiếp, đo từng lần
-            string algorithm = args.Length > 0 ? args[0].ToLower() : "aes"; // plaintext / aes / rsa / fpe
+            string algorithm = args.Length > 0 ? args[0].ToLower() : "aes"; // plaintext / aes / rsa / fpe / hash
             int soLanGoi = args.Length > 1 ? int.Parse(args[1]) : 20;
 
             Console.WriteLine($"=== Đo thời gian thực thi: Algorithm={algorithm.ToUpper()}, Số lần gọi={soLanGoi} ===\n");
 
             EnsureLogFileExists();
+            ConfigureSerilog();
 
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
-            };
-            using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(Host) };
-            
-            Console.WriteLine("Đang warm-up (không tính vào kết quả)...");
             try
             {
-                string warmupField = "CMND";
-                string warmupValue = "000000000000";
-
-                if (algorithm == "plaintext")
-                    await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName = warmupField, value = warmupValue });
-                else if (algorithm == "hash")
-                    await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName = warmupField, value = warmupValue });
-                else
-                    await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName = warmupField, value = warmupValue });
-            }
-            catch { /* bỏ qua lỗi warm-up nếu có */ }
-            Console.WriteLine("Warm-up xong, bắt đầu đo thật:\n");
-
-
-            var encryptTimes = new List<double>();
-            var decryptTimes = new List<double>();
-
-            for (int i = 1; i <= soLanGoi; i++)
-            {
-                var (fieldName, value) = GetRecord(i);
-                Console.Write($"Lần {i,3}/{soLanGoi} - field={fieldName,-8} ... ");
-
-                if (algorithm == "plaintext")
+                var handler = new HttpClientHandler
                 {
-                    var sw = Stopwatch.StartNew();
-                    var res = await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName, value });
-                    sw.Stop();
+                    ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
+                };
+                using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(Host) };
 
-                    LogResult("PLAINTEXT", "None", Encoding.UTF8.GetByteCount(value), sw.Elapsed.TotalMilliseconds, res.IsSuccessStatusCode);
-                    encryptTimes.Add(sw.Elapsed.TotalMilliseconds);
-                    Console.WriteLine($"{sw.Elapsed.TotalMilliseconds:F2} ms");
-                    continue;
-                }
-
-                //  HASH (HMAC-SHA256): chỉ 1 chiều, không có Decrypt vì hash không đảo ngược được 
-                if (algorithm == "hash")
-                {
-                    var swHash = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch
-                    var hashRes = await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName, value });
-                    swHash.Stop();
-
-                    LogResult("HMAC-SHA256", "Hash", Encoding.UTF8.GetByteCount(value), swHash.Elapsed.TotalMilliseconds, hashRes.IsSuccessStatusCode);
-                    encryptTimes.Add(swHash.Elapsed.TotalMilliseconds); // dùng chung danh sách encryptTimes để tính thống kê
-                    Console.WriteLine($"{swHash.Elapsed.TotalMilliseconds:F2} ms");
-                    continue;
-                }
-
-                //  ENCRYPT 
-                var swEncrypt = Stopwatch.StartNew(); // System.Diagnostics.Stopwatch bắt đầu
-                var encryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName, value });
-                swEncrypt.Stop(); // ← dừng lại ngay khi có phản hồi
-
-                LogResult(algorithm.ToUpper(), "Encrypt", Encoding.UTF8.GetByteCount(value), swEncrypt.Elapsed.TotalMilliseconds, encryptRes.IsSuccessStatusCode);
-                encryptTimes.Add(swEncrypt.Elapsed.TotalMilliseconds);
-
-                if (!encryptRes.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("Encrypt lỗi, bỏ qua Decrypt");
-                    continue;
-                }
-
-                // var body = await encryptRes.Content.ReadAsStringAsync();
-                // using var doc = JsonDocument.Parse(body);
-                // string encryptedValue = doc.RootElement.GetProperty("data").GetProperty("OutputValue").GetString();
-                var body = await encryptRes.Content.ReadAsStringAsync();
-                string? encryptedValue = null;
+                Console.WriteLine("Đang warm-up (không tính vào kết quả)...");
                 try
                 {
-                    using var doc = JsonDocument.Parse(body);
-                    if (doc.RootElement.TryGetProperty("data", out var dataEl) &&
-                        dataEl.TryGetProperty("OutputValue", out var outEl))
+                    string warmupField = "CMND";
+                    string warmupValue = "000000000000";
+
+                    if (algorithm == "plaintext")
+                        await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName = warmupField, value = warmupValue });
+                    else if (algorithm == "hash")
+                        await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName = warmupField, value = warmupValue });
+                    else
+                        await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName = warmupField, value = warmupValue });
+                }
+                catch { /* bỏ qua lỗi warm-up nếu có */ }
+                Console.WriteLine("Warm-up xong, bắt đầu đo thật:\n");
+
+                var encryptClientTimes = new List<double>();
+                var encryptServerTimes = new List<double>();
+                var decryptClientTimes = new List<double>();
+                var decryptServerTimes = new List<double>();
+
+                for (int i = 1; i <= soLanGoi; i++)
+                {
+                    var (fieldName, value) = GetRecord(i);
+                    Console.Write($"Lần {i,3}/{soLanGoi} - field={fieldName,-8} ... ");
+
+                    if (algorithm == "plaintext")
                     {
-                        encryptedValue = outEl.GetString();
+                        var sw = Stopwatch.StartNew();
+                        var res = await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName, value });
+                        sw.Stop();
+
+                        double serverMs = await ReadServerExecutionTimeMs(res);
+                        LogResult("PLAINTEXT", "None", Encoding.UTF8.GetByteCount(value), sw.Elapsed.TotalMilliseconds, serverMs, res.IsSuccessStatusCode);
+                        encryptClientTimes.Add(sw.Elapsed.TotalMilliseconds);
+                        encryptServerTimes.Add(serverMs);
+                        Console.WriteLine($"Client={sw.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
+                        continue;
                     }
+
+                    //  HASH (HMAC-SHA256): chỉ 1 chiều, không có Decrypt 
+                    if (algorithm == "hash")
+                    {
+                        var swHash = Stopwatch.StartNew();
+                        var hashRes = await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName, value });
+                        swHash.Stop();
+
+                        double serverMs = await ReadServerExecutionTimeMs(hashRes);
+                        LogResult("HMAC-SHA256", "Hash", Encoding.UTF8.GetByteCount(value), swHash.Elapsed.TotalMilliseconds, serverMs, hashRes.IsSuccessStatusCode);
+                        encryptClientTimes.Add(swHash.Elapsed.TotalMilliseconds);
+                        encryptServerTimes.Add(serverMs);
+                        Console.WriteLine($"Client={swHash.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
+                        continue;
+                    }
+
+                    //  ENCRYPT 
+                    var swEncrypt = Stopwatch.StartNew();
+                    var encryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName, value });
+                    swEncrypt.Stop();
+
+                    var body = await encryptRes.Content.ReadAsStringAsync();
+                    string? encryptedValue = null;
+                    double encryptServerMs = 0;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("data", out var dataEl))
+                        {
+                            if (dataEl.TryGetProperty("OutputValue", out var outEl))
+                                encryptedValue = outEl.GetString();
+                            if (dataEl.TryGetProperty("ServerExecutionTimeMs", out var timeEl))
+                                encryptServerMs = timeEl.GetDouble();
+                        }
+                    }
+                    catch (JsonException) { /* body không phải JSON hợp lệ */ }
+
+                    LogResult(algorithm.ToUpper(), "Encrypt", Encoding.UTF8.GetByteCount(value), swEncrypt.Elapsed.TotalMilliseconds, encryptServerMs, encryptRes.IsSuccessStatusCode);
+                    encryptClientTimes.Add(swEncrypt.Elapsed.TotalMilliseconds);
+                    encryptServerTimes.Add(encryptServerMs);
+
+                    if (!encryptRes.IsSuccessStatusCode || encryptedValue == null)
+                    {
+                        Console.WriteLine("Encrypt lỗi/không đúng định dạng, bỏ qua Decrypt");
+                        continue;
+                    }
+
+                    //  DECRYPT 
+                    var swDecrypt = Stopwatch.StartNew();
+                    var decryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/decrypt", new { fieldName, value = encryptedValue });
+                    swDecrypt.Stop();
+
+                    double decryptServerMs = await ReadServerExecutionTimeMs(decryptRes);
+                    LogResult(algorithm.ToUpper(), "Decrypt", Encoding.UTF8.GetByteCount(encryptedValue ?? ""), swDecrypt.Elapsed.TotalMilliseconds, decryptServerMs, decryptRes.IsSuccessStatusCode);
+                    decryptClientTimes.Add(swDecrypt.Elapsed.TotalMilliseconds);
+                    decryptServerTimes.Add(decryptServerMs);
+
+                    Console.WriteLine($"Encrypt[Client={swEncrypt.Elapsed.TotalMilliseconds:F2}ms Server={encryptServerMs:F3}ms]  Decrypt[Client={swDecrypt.Elapsed.TotalMilliseconds:F2}ms Server={decryptServerMs:F3}ms]");
                 }
-                catch (JsonException)
+
+                string tenThaoTac = algorithm == "hash" ? "Hash" : "Encrypt";
+                PrintSummary($"{tenThaoTac} (Client round-trip)", encryptClientTimes);
+                PrintSummary($"{tenThaoTac} (Server thuần thuật toán)", encryptServerTimes);
+                if (algorithm != "plaintext" && algorithm != "hash")
                 {
-                    // body không phải JSON hợp lệ, encryptedValue giữ nguyên null
+                    PrintSummary("Decrypt (Client round-trip)", decryptClientTimes);
+                    PrintSummary("Decrypt (Server thuần thuật toán)", decryptServerTimes);
                 }
 
-                if (encryptedValue == null)
-                {
-                    Console.WriteLine($"Encrypt trả về không đúng định dạng, bỏ qua Decrypt. Response: {body}");
-                    continue;
-                }
-
-                //  DECRYPT 
-                var swDecrypt = Stopwatch.StartNew(); // ← System.Diagnostics.Stopwatch bắt đầu
-                var decryptRes = await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/decrypt", new { fieldName, value = encryptedValue });
-                swDecrypt.Stop(); // ← dừng lại
-
-                LogResult(algorithm.ToUpper(), "Decrypt", Encoding.UTF8.GetByteCount(encryptedValue ?? ""), swDecrypt.Elapsed.TotalMilliseconds, decryptRes.IsSuccessStatusCode);
-                decryptTimes.Add(swDecrypt.Elapsed.TotalMilliseconds);
-
-                Console.WriteLine($"Encrypt={swEncrypt.Elapsed.TotalMilliseconds:F2}ms  Decrypt={swDecrypt.Elapsed.TotalMilliseconds:F2}ms");
+                Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
             }
-
-            string tenThaoTac = algorithm == "hash" ? "Hash" : "Encrypt";
-            PrintSummary(tenThaoTac, encryptTimes);
-            if (algorithm != "plaintext" && algorithm != "hash") PrintSummary("Decrypt", decryptTimes);
-
-            Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
-        // Đọc bộ dữ liệu giả lập cố định 200 dòng (dùng chung với K6),
-        // để tái lập được kết quả, so sánh công bằng giữa các lần chạy.
-        // File test-data-200.json cần đặt cùng thư mục với Program.cs
-        // (hoặc chỉ đường dẫn khác trong DataFilePath bên dưới).
+        /// <summary>
+        /// Đọc field "ServerExecutionTimeMs" mà server trả về trong response -
+        /// đây là thời gian server tự đo (Stopwatch bọc sát quanh dòng gọi thuật toán).
+        /// </summary>
+        private static async Task<double> ReadServerExecutionTimeMs(HttpResponseMessage res)
+        {
+            try
+            {
+                var body = await res.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("data", out var dataEl) &&
+                    dataEl.TryGetProperty("ServerExecutionTimeMs", out var timeEl))
+                {
+                    return timeEl.GetDouble();
+                }
+            }
+            catch { /* bỏ qua, trả về 0 nếu không đọc được */ }
+            return 0;
+        }
+
+        private static void ConfigureSerilog()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Async(a => a.File(
+                    path: LogFilePath,
+                    outputTemplate: "{Message:lj}{NewLine}"))
+                .CreateLogger();
+        }
+
         private static readonly string DataFilePath = Path.Combine(Directory.GetCurrentDirectory(), "test-data-200.json");
         private static List<(string fieldName, string value)>? _testData;
 
@@ -159,8 +206,6 @@ namespace PerformanceTestClient
                     .Select(e => (e.GetProperty("fieldName").GetString()!, e.GetProperty("value").GetString()!))
                     .ToList();
             }
-
-            // Lấy tuần tự, xoay vòng nếu số lần gọi > 200 - đảm bảo tái lập được kết quả
             int idx = (lanThu - 1) % _testData.Count;
             return _testData[idx];
         }
@@ -171,32 +216,18 @@ namespace PerformanceTestClient
 
             if (!File.Exists(LogFilePath))
             {
-                var header = "Timestamp,Algorithm,Operation,DataSizeBytes,ExecutionTimeMs,Success" + Environment.NewLine;
+                var header = "Timestamp,Algorithm,Operation,DataSizeBytes,ClientRoundTripMs,ServerExecutionMs,Success" + Environment.NewLine;
                 File.WriteAllText(LogFilePath, header, Encoding.UTF8);
             }
         }
 
-        private static void LogResult(string algorithm, string operation, long dataSizeBytes, double executionTimeMs, bool success)
+        private static void LogResult(string algorithm, string operation, long dataSizeBytes, double clientMs, double serverMs, bool success)
         {
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            var line = $"{timestamp},{algorithm},{operation},{dataSizeBytes},{executionTimeMs:F3},{success}" + Environment.NewLine;
-            File.AppendAllText(LogFilePath, line, Encoding.UTF8);
+            var line = $"{timestamp},{algorithm},{operation},{dataSizeBytes},{clientMs:F3},{serverMs:F3},{success}";
+            Log.Information(line);
         }
 
-        // private static void PrintSummary(string operation, List<double> times)
-        // {
-        //     if (times.Count == 0)
-        //     {
-        //         Console.WriteLine($"[{operation}] Không có dữ liệu.");
-        //         return;
-        //     }
-
-        //     var sorted = times.OrderBy(x => x).ToArray();
-        //     Console.WriteLine($"\n=== {operation} - Thống kê ({sorted.Length} lần) ===");
-        //     Console.WriteLine($"Trung bình : {sorted.Average():F2} ms");
-        //     Console.WriteLine($"Nhỏ nhất   : {sorted.First():F2} ms");
-        //     Console.WriteLine($"Lớn nhất   : {sorted.Last():F2} ms");
-        // }
         private static void PrintSummary(string operation, List<double> times)
         {
             if (times.Count == 0)
@@ -211,10 +242,10 @@ namespace PerformanceTestClient
                 : sorted[sorted.Length / 2];
 
             Console.WriteLine($"\n=== {operation} - Thống kê ({sorted.Length} lần) ===");
-            Console.WriteLine($"Trung bình : {sorted.Average():F2} ms");
-            Console.WriteLine($"Trung vị   : {median:F2} ms   (ít bị lệch bởi outlier hơn Trung bình)");
-            Console.WriteLine($"Nhỏ nhất   : {sorted.First():F2} ms");
-            Console.WriteLine($"Lớn nhất   : {sorted.Last():F2} ms");
+            Console.WriteLine($"Trung bình : {sorted.Average():F3} ms");
+            Console.WriteLine($"Trung vị   : {median:F3} ms   (ít bị lệch bởi outlier hơn Trung bình)");
+            Console.WriteLine($"Nhỏ nhất   : {sorted.First():F3} ms");
+            Console.WriteLine($"Lớn nhất   : {sorted.Last():F3} ms");
         }
     }
 }
