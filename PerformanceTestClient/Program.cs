@@ -102,6 +102,20 @@ namespace PerformanceTestClient
                         Console.WriteLine($"Client={swHash.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
                         continue;
                     }
+                    //  HASH INDEX (tìm kiếm gần đúng): 1 chiều, có chuẩn hóa chuỗi trước khi hash 
+                    if (algorithm == "hashindex")
+                    {
+                        var swHashIndex = Stopwatch.StartNew();
+                        var hashIndexRes = await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/index", new { fieldName, value });
+                        swHashIndex.Stop();
+
+                        double serverMs = await ReadServerExecutionTimeMs(hashIndexRes);
+                        LogResult("HMAC-SHA256", "IndexHash", Encoding.UTF8.GetByteCount(value), swHashIndex.Elapsed.TotalMilliseconds, serverMs, hashIndexRes.IsSuccessStatusCode);
+                        encryptClientTimes.Add(swHashIndex.Elapsed.TotalMilliseconds);
+                        encryptServerTimes.Add(serverMs);
+                        Console.WriteLine($"Client={swHashIndex.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
+                        continue;
+                    }
 
                     //  ENCRYPT 
                     var swEncrypt = Stopwatch.StartNew();
@@ -150,7 +164,7 @@ namespace PerformanceTestClient
                 string tenThaoTac = algorithm == "hash" ? "Hash" : "Encrypt";
                 PrintSummary($"{tenThaoTac} (Client round-trip)", encryptClientTimes);
                 PrintSummary($"{tenThaoTac} (Server thuần thuật toán)", encryptServerTimes);
-                if (algorithm != "plaintext" && algorithm != "hash")
+                if (algorithm != "plaintext" && algorithm != "hash" && algorithm != "hashindex")
                 {
                     PrintSummary("Decrypt (Client round-trip)", decryptClientTimes);
                     PrintSummary("Decrypt (Server thuần thuật toán)", decryptServerTimes);

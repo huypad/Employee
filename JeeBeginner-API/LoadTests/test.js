@@ -28,6 +28,7 @@ const HOST = 'https://localhost:1404';
 const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
 const hashTrend = new Trend('hash_duration_ms');
+const hashIndexTrend = new Trend('hashindex_duration_ms');
 
 // Custom metrics - đo từ phía SERVER (Stopwatch bọc sát quanh đúng dòng gọi
 // thuật toán trong ProcessField(), KHÔNG tính network/serialize/overhead HTTP)
@@ -88,7 +89,18 @@ export default function () {
     sleep(1);
     return;
   }
+  // TRƯỜNG HỢP HASH INDEX (tìm kiếm gần đúng): cũng 1 chiều như hash thường,
+  // khác ở chỗ server chuẩn hóa chuỗi trước khi hash (viết hoa, gộp khoảng trắng)
+  if (ALGO === 'hashindex') {
+    const url = `${HOST}/api/encryptiontest/hmacsha256/field/index`;
+    const res = http.post(url, JSON.stringify({ fieldName, value }), params);
 
+    check(res, { 'hashindex status 200': (r) => r.status === 200 });
+    hashIndexTrend.add(res.timings.duration, { algorithm: 'hashindex', field: fieldName });
+
+    sleep(1);
+    return;
+  }
   // AES / RSA / FPE: có cả 2 chiều Encrypt + Decrypt
   const encryptUrl = `${HOST}/api/encryptiontest/${ALGO}/field/encrypt`;
   const encryptRes = http.post(encryptUrl, JSON.stringify({ fieldName, value }), params);
