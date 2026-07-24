@@ -2,392 +2,392 @@
   {
     "id": 1,
     "fieldName": "CMND",
-    "value": "559676510229"
+    "value": "223005401501"
   },
   {
     "id": 2,
     "fieldName": "I_CMND",
-    "value": "926565216567"
+    "value": "945433611429"
   },
   {
     "id": 3,
     "fieldName": "CMND_Enc",
-    "value": "175247359456"
+    "value": "189966462838"
   },
   {
     "id": 4,
     "fieldName": "Sotaikhoan",
-    "value": "1223306623"
+    "value": "4590711152"
   },
   {
     "id": 5,
     "fieldName": "I_Sotaikhoan",
-    "value": "3292146439"
+    "value": "3343292475"
   },
   {
     "id": 6,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "6081098255"
+    "value": "5607762160"
   },
   {
     "id": 7,
     "fieldName": "Holot",
-    "value": "Dang"
+    "value": "Tran"
   },
   {
     "id": 8,
     "fieldName": "Ten",
-    "value": "Hoai F"
+    "value": "Anh H"
   },
   {
     "id": 9,
-    "fieldName": "CMND",
-    "value": "763218884280"
+    "fieldName": "MaNhanVien",
+    "value": "NV3155"
   },
   {
     "id": 10,
-    "fieldName": "I_CMND",
-    "value": "799191918320"
+    "fieldName": "CMND",
+    "value": "911856239313"
   },
   {
     "id": 11,
-    "fieldName": "CMND_Enc",
-    "value": "575119164860"
+    "fieldName": "I_CMND",
+    "value": "163462436409"
   },
   {
     "id": 12,
-    "fieldName": "Sotaikhoan",
-    "value": "8514060893"
+    "fieldName": "CMND_Enc",
+    "value": "903526763113"
   },
   {
     "id": 13,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8981702886"
+    "fieldName": "Sotaikhoan",
+    "value": "5161807235"
   },
   {
     "id": 14,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "8290072140"
+    "fieldName": "I_Sotaikhoan",
+    "value": "8879525611"
   },
   {
     "id": 15,
-    "fieldName": "Holot",
-    "value": "Vo"
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "8285786023"
   },
   {
     "id": 16,
-    "fieldName": "Ten",
-    "value": "Thi B"
-  },
-  {
-    "id": 17,
-    "fieldName": "CMND",
-    "value": "798136025725"
-  },
-  {
-    "id": 18,
-    "fieldName": "I_CMND",
-    "value": "359333430427"
-  },
-  {
-    "id": 19,
-    "fieldName": "CMND_Enc",
-    "value": "315584250672"
-  },
-  {
-    "id": 20,
-    "fieldName": "Sotaikhoan",
-    "value": "7078050482"
-  },
-  {
-    "id": 21,
-    "fieldName": "I_Sotaikhoan",
-    "value": "1416195896"
-  },
-  {
-    "id": 22,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "6863881377"
-  },
-  {
-    "id": 23,
-    "fieldName": "Holot",
-    "value": "Dang"
-  },
-  {
-    "id": 24,
-    "fieldName": "Ten",
-    "value": "Minh C"
-  },
-  {
-    "id": 25,
-    "fieldName": "CMND",
-    "value": "155678828491"
-  },
-  {
-    "id": 26,
-    "fieldName": "I_CMND",
-    "value": "791222812923"
-  },
-  {
-    "id": 27,
-    "fieldName": "CMND_Enc",
-    "value": "828922690060"
-  },
-  {
-    "id": 28,
-    "fieldName": "Sotaikhoan",
-    "value": "1799312210"
-  },
-  {
-    "id": 29,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8083169004"
-  },
-  {
-    "id": 30,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "3256741923"
-  },
-  {
-    "id": 31,
-    "fieldName": "Holot",
-    "value": "Ho"
-  },
-  {
-    "id": 32,
-    "fieldName": "Ten",
-    "value": "Minh C"
-  },
-  {
-    "id": 33,
-    "fieldName": "CMND",
-    "value": "820401923675"
-  },
-  {
-    "id": 34,
-    "fieldName": "I_CMND",
-    "value": "863592617508"
-  },
-  {
-    "id": 35,
-    "fieldName": "CMND_Enc",
-    "value": "160053149748"
-  },
-  {
-    "id": 36,
-    "fieldName": "Sotaikhoan",
-    "value": "7417391959"
-  },
-  {
-    "id": 37,
-    "fieldName": "I_Sotaikhoan",
-    "value": "4537471077"
-  },
-  {
-    "id": 38,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "5803488682"
-  },
-  {
-    "id": 39,
     "fieldName": "Holot",
     "value": "Nguyen"
   },
   {
-    "id": 40,
-    "fieldName": "Ten",
-    "value": "Quoc D"
-  },
-  {
-    "id": 41,
-    "fieldName": "CMND",
-    "value": "866020992824"
-  },
-  {
-    "id": 42,
-    "fieldName": "I_CMND",
-    "value": "118809366334"
-  },
-  {
-    "id": 43,
-    "fieldName": "CMND_Enc",
-    "value": "842741911064"
-  },
-  {
-    "id": 44,
-    "fieldName": "Sotaikhoan",
-    "value": "2381872375"
-  },
-  {
-    "id": 45,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8262012431"
-  },
-  {
-    "id": 46,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "4282868938"
-  },
-  {
-    "id": 47,
-    "fieldName": "Holot",
-    "value": "Hoang"
-  },
-  {
-    "id": 48,
-    "fieldName": "Ten",
-    "value": "Van A"
-  },
-  {
-    "id": 49,
-    "fieldName": "CMND",
-    "value": "101359433640"
-  },
-  {
-    "id": 50,
-    "fieldName": "I_CMND",
-    "value": "198053173678"
-  },
-  {
-    "id": 51,
-    "fieldName": "CMND_Enc",
-    "value": "283589917240"
-  },
-  {
-    "id": 52,
-    "fieldName": "Sotaikhoan",
-    "value": "1970150040"
-  },
-  {
-    "id": 53,
-    "fieldName": "I_Sotaikhoan",
-    "value": "2498475151"
-  },
-  {
-    "id": 54,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "6172271431"
-  },
-  {
-    "id": 55,
-    "fieldName": "Holot",
-    "value": "Pham"
-  },
-  {
-    "id": 56,
-    "fieldName": "Ten",
-    "value": "Thi B"
-  },
-  {
-    "id": 57,
-    "fieldName": "CMND",
-    "value": "748165764420"
-  },
-  {
-    "id": 58,
-    "fieldName": "I_CMND",
-    "value": "699481033307"
-  },
-  {
-    "id": 59,
-    "fieldName": "CMND_Enc",
-    "value": "749725494132"
-  },
-  {
-    "id": 60,
-    "fieldName": "Sotaikhoan",
-    "value": "2574525344"
-  },
-  {
-    "id": 61,
-    "fieldName": "I_Sotaikhoan",
-    "value": "6719220609"
-  },
-  {
-    "id": 62,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "4326727315"
-  },
-  {
-    "id": 63,
-    "fieldName": "Holot",
-    "value": "Do"
-  },
-  {
-    "id": 64,
+    "id": 17,
     "fieldName": "Ten",
     "value": "Linh K"
   },
   {
-    "id": 65,
+    "id": 18,
+    "fieldName": "MaNhanVien",
+    "value": "NV5169"
+  },
+  {
+    "id": 19,
     "fieldName": "CMND",
-    "value": "352985095510"
+    "value": "367469214295"
+  },
+  {
+    "id": 20,
+    "fieldName": "I_CMND",
+    "value": "984901132451"
+  },
+  {
+    "id": 21,
+    "fieldName": "CMND_Enc",
+    "value": "995440510689"
+  },
+  {
+    "id": 22,
+    "fieldName": "Sotaikhoan",
+    "value": "4645120421"
+  },
+  {
+    "id": 23,
+    "fieldName": "I_Sotaikhoan",
+    "value": "5931025271"
+  },
+  {
+    "id": 24,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7418301077"
+  },
+  {
+    "id": 25,
+    "fieldName": "Holot",
+    "value": "Dang"
+  },
+  {
+    "id": 26,
+    "fieldName": "Ten",
+    "value": "Trang P"
+  },
+  {
+    "id": 27,
+    "fieldName": "MaNhanVien",
+    "value": "NV1958"
+  },
+  {
+    "id": 28,
+    "fieldName": "CMND",
+    "value": "251282538206"
+  },
+  {
+    "id": 29,
+    "fieldName": "I_CMND",
+    "value": "539441524732"
+  },
+  {
+    "id": 30,
+    "fieldName": "CMND_Enc",
+    "value": "687382313669"
+  },
+  {
+    "id": 31,
+    "fieldName": "Sotaikhoan",
+    "value": "6009268066"
+  },
+  {
+    "id": 32,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1547374338"
+  },
+  {
+    "id": 33,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "2047905204"
+  },
+  {
+    "id": 34,
+    "fieldName": "Holot",
+    "value": "Vu"
+  },
+  {
+    "id": 35,
+    "fieldName": "Ten",
+    "value": "Phuc O"
+  },
+  {
+    "id": 36,
+    "fieldName": "MaNhanVien",
+    "value": "NV8779"
+  },
+  {
+    "id": 37,
+    "fieldName": "CMND",
+    "value": "214832269481"
+  },
+  {
+    "id": 38,
+    "fieldName": "I_CMND",
+    "value": "169869415070"
+  },
+  {
+    "id": 39,
+    "fieldName": "CMND_Enc",
+    "value": "240728187316"
+  },
+  {
+    "id": 40,
+    "fieldName": "Sotaikhoan",
+    "value": "7380780055"
+  },
+  {
+    "id": 41,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6618926823"
+  },
+  {
+    "id": 42,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "2825989011"
+  },
+  {
+    "id": 43,
+    "fieldName": "Holot",
+    "value": "Nguyen"
+  },
+  {
+    "id": 44,
+    "fieldName": "Ten",
+    "value": "Yen N"
+  },
+  {
+    "id": 45,
+    "fieldName": "MaNhanVien",
+    "value": "NV3033"
+  },
+  {
+    "id": 46,
+    "fieldName": "CMND",
+    "value": "914655221101"
+  },
+  {
+    "id": 47,
+    "fieldName": "I_CMND",
+    "value": "726820024292"
+  },
+  {
+    "id": 48,
+    "fieldName": "CMND_Enc",
+    "value": "822105942877"
+  },
+  {
+    "id": 49,
+    "fieldName": "Sotaikhoan",
+    "value": "1251837136"
+  },
+  {
+    "id": 50,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4696689457"
+  },
+  {
+    "id": 51,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7519578899"
+  },
+  {
+    "id": 52,
+    "fieldName": "Holot",
+    "value": "Ta"
+  },
+  {
+    "id": 53,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 54,
+    "fieldName": "MaNhanVien",
+    "value": "NV3138"
+  },
+  {
+    "id": 55,
+    "fieldName": "CMND",
+    "value": "700832336208"
+  },
+  {
+    "id": 56,
+    "fieldName": "I_CMND",
+    "value": "889742985454"
+  },
+  {
+    "id": 57,
+    "fieldName": "CMND_Enc",
+    "value": "282750014896"
+  },
+  {
+    "id": 58,
+    "fieldName": "Sotaikhoan",
+    "value": "2627677155"
+  },
+  {
+    "id": 59,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9155819200"
+  },
+  {
+    "id": 60,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "9805620900"
+  },
+  {
+    "id": 61,
+    "fieldName": "Holot",
+    "value": "Hoang"
+  },
+  {
+    "id": 62,
+    "fieldName": "Ten",
+    "value": "Bao J"
+  },
+  {
+    "id": 63,
+    "fieldName": "MaNhanVien",
+    "value": "NV3545"
+  },
+  {
+    "id": 64,
+    "fieldName": "CMND",
+    "value": "748913461122"
+  },
+  {
+    "id": 65,
+    "fieldName": "I_CMND",
+    "value": "333279765207"
   },
   {
     "id": 66,
-    "fieldName": "I_CMND",
-    "value": "488780397284"
+    "fieldName": "CMND_Enc",
+    "value": "680958994499"
   },
   {
     "id": 67,
-    "fieldName": "CMND_Enc",
-    "value": "993948139131"
+    "fieldName": "Sotaikhoan",
+    "value": "9526836552"
   },
   {
     "id": 68,
-    "fieldName": "Sotaikhoan",
-    "value": "5225962551"
+    "fieldName": "I_Sotaikhoan",
+    "value": "5736462531"
   },
   {
     "id": 69,
-    "fieldName": "I_Sotaikhoan",
-    "value": "3213105688"
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "4643576871"
   },
   {
     "id": 70,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "2935690394"
+    "fieldName": "Holot",
+    "value": "Dang"
   },
   {
     "id": 71,
-    "fieldName": "Holot",
-    "value": "Vo"
+    "fieldName": "Ten",
+    "value": "Duc I"
   },
   {
     "id": 72,
-    "fieldName": "Ten",
-    "value": "Minh C"
+    "fieldName": "MaNhanVien",
+    "value": "NV7933"
   },
   {
     "id": 73,
     "fieldName": "CMND",
-    "value": "864768314093"
+    "value": "136171878809"
   },
   {
     "id": 74,
     "fieldName": "I_CMND",
-    "value": "440673678145"
+    "value": "648275934229"
   },
   {
     "id": 75,
     "fieldName": "CMND_Enc",
-    "value": "746717810145"
+    "value": "769467002266"
   },
   {
     "id": 76,
     "fieldName": "Sotaikhoan",
-    "value": "1722509236"
+    "value": "7249213370"
   },
   {
     "id": 77,
     "fieldName": "I_Sotaikhoan",
-    "value": "6200496334"
+    "value": "4993808565"
   },
   {
     "id": 78,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "1509377881"
+    "value": "2960488639"
   },
   {
     "id": 79,
@@ -397,357 +397,357 @@
   {
     "id": 80,
     "fieldName": "Ten",
-    "value": "Duc I"
+    "value": "Minh C"
   },
   {
     "id": 81,
-    "fieldName": "CMND",
-    "value": "750054909966"
+    "fieldName": "MaNhanVien",
+    "value": "NV4530"
   },
   {
     "id": 82,
-    "fieldName": "I_CMND",
-    "value": "820998603399"
+    "fieldName": "CMND",
+    "value": "198912225902"
   },
   {
     "id": 83,
-    "fieldName": "CMND_Enc",
-    "value": "573902053604"
+    "fieldName": "I_CMND",
+    "value": "808302588517"
   },
   {
     "id": 84,
-    "fieldName": "Sotaikhoan",
-    "value": "9778010603"
+    "fieldName": "CMND_Enc",
+    "value": "931244947195"
   },
   {
     "id": 85,
-    "fieldName": "I_Sotaikhoan",
-    "value": "1506629988"
+    "fieldName": "Sotaikhoan",
+    "value": "8380507338"
   },
   {
     "id": 86,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "1632710625"
+    "fieldName": "I_Sotaikhoan",
+    "value": "4713453204"
   },
   {
     "id": 87,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "8737025391"
+  },
+  {
+    "id": 88,
+    "fieldName": "Holot",
+    "value": "Dinh"
+  },
+  {
+    "id": 89,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 90,
+    "fieldName": "MaNhanVien",
+    "value": "NV9659"
+  },
+  {
+    "id": 91,
+    "fieldName": "CMND",
+    "value": "354342113419"
+  },
+  {
+    "id": 92,
+    "fieldName": "I_CMND",
+    "value": "256589576361"
+  },
+  {
+    "id": 93,
+    "fieldName": "CMND_Enc",
+    "value": "859049274154"
+  },
+  {
+    "id": 94,
+    "fieldName": "Sotaikhoan",
+    "value": "1664847319"
+  },
+  {
+    "id": 95,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4482238042"
+  },
+  {
+    "id": 96,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7852415525"
+  },
+  {
+    "id": 97,
+    "fieldName": "Holot",
+    "value": "Pham"
+  },
+  {
+    "id": 98,
+    "fieldName": "Ten",
+    "value": "Phuc O"
+  },
+  {
+    "id": 99,
+    "fieldName": "MaNhanVien",
+    "value": "NV8595"
+  },
+  {
+    "id": 100,
+    "fieldName": "CMND",
+    "value": "763595448017"
+  },
+  {
+    "id": 101,
+    "fieldName": "I_CMND",
+    "value": "251461507038"
+  },
+  {
+    "id": 102,
+    "fieldName": "CMND_Enc",
+    "value": "882547985119"
+  },
+  {
+    "id": 103,
+    "fieldName": "Sotaikhoan",
+    "value": "2274350418"
+  },
+  {
+    "id": 104,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9080621072"
+  },
+  {
+    "id": 105,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "9123612497"
+  },
+  {
+    "id": 106,
+    "fieldName": "Holot",
+    "value": "Mai"
+  },
+  {
+    "id": 107,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 108,
+    "fieldName": "MaNhanVien",
+    "value": "NV9777"
+  },
+  {
+    "id": 109,
+    "fieldName": "CMND",
+    "value": "714294294451"
+  },
+  {
+    "id": 110,
+    "fieldName": "I_CMND",
+    "value": "917103043320"
+  },
+  {
+    "id": 111,
+    "fieldName": "CMND_Enc",
+    "value": "539425475482"
+  },
+  {
+    "id": 112,
+    "fieldName": "Sotaikhoan",
+    "value": "5160575046"
+  },
+  {
+    "id": 113,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1106456634"
+  },
+  {
+    "id": 114,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7462972995"
+  },
+  {
+    "id": 115,
+    "fieldName": "Holot",
+    "value": "Vu"
+  },
+  {
+    "id": 116,
+    "fieldName": "Ten",
+    "value": "Phuc O"
+  },
+  {
+    "id": 117,
+    "fieldName": "MaNhanVien",
+    "value": "NV4636"
+  },
+  {
+    "id": 118,
+    "fieldName": "CMND",
+    "value": "886833016361"
+  },
+  {
+    "id": 119,
+    "fieldName": "I_CMND",
+    "value": "690821577339"
+  },
+  {
+    "id": 120,
+    "fieldName": "CMND_Enc",
+    "value": "838713541566"
+  },
+  {
+    "id": 121,
+    "fieldName": "Sotaikhoan",
+    "value": "3328710672"
+  },
+  {
+    "id": 122,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9292791081"
+  },
+  {
+    "id": 123,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7648059419"
+  },
+  {
+    "id": 124,
+    "fieldName": "Holot",
+    "value": "Trinh"
+  },
+  {
+    "id": 125,
+    "fieldName": "Ten",
+    "value": "Tuan M"
+  },
+  {
+    "id": 126,
+    "fieldName": "MaNhanVien",
+    "value": "NV1647"
+  },
+  {
+    "id": 127,
+    "fieldName": "CMND",
+    "value": "871590378377"
+  },
+  {
+    "id": 128,
+    "fieldName": "I_CMND",
+    "value": "921467220156"
+  },
+  {
+    "id": 129,
+    "fieldName": "CMND_Enc",
+    "value": "510813098126"
+  },
+  {
+    "id": 130,
+    "fieldName": "Sotaikhoan",
+    "value": "8507497883"
+  },
+  {
+    "id": 131,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4482141802"
+  },
+  {
+    "id": 132,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "4853479481"
+  },
+  {
+    "id": 133,
     "fieldName": "Holot",
     "value": "Bui"
   },
   {
-    "id": 88,
-    "fieldName": "Ten",
-    "value": "Linh K"
-  },
-  {
-    "id": 89,
-    "fieldName": "CMND",
-    "value": "545220396272"
-  },
-  {
-    "id": 90,
-    "fieldName": "I_CMND",
-    "value": "963231579309"
-  },
-  {
-    "id": 91,
-    "fieldName": "CMND_Enc",
-    "value": "123738573182"
-  },
-  {
-    "id": 92,
-    "fieldName": "Sotaikhoan",
-    "value": "1907657763"
-  },
-  {
-    "id": 93,
-    "fieldName": "I_Sotaikhoan",
-    "value": "7115266384"
-  },
-  {
-    "id": 94,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "3593575463"
-  },
-  {
-    "id": 95,
-    "fieldName": "Holot",
-    "value": "Hoang"
-  },
-  {
-    "id": 96,
-    "fieldName": "Ten",
-    "value": "Anh H"
-  },
-  {
-    "id": 97,
-    "fieldName": "CMND",
-    "value": "782057627910"
-  },
-  {
-    "id": 98,
-    "fieldName": "I_CMND",
-    "value": "739854511924"
-  },
-  {
-    "id": 99,
-    "fieldName": "CMND_Enc",
-    "value": "430049000877"
-  },
-  {
-    "id": 100,
-    "fieldName": "Sotaikhoan",
-    "value": "4150311518"
-  },
-  {
-    "id": 101,
-    "fieldName": "I_Sotaikhoan",
-    "value": "7821733102"
-  },
-  {
-    "id": 102,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "7608284431"
-  },
-  {
-    "id": 103,
-    "fieldName": "Holot",
-    "value": "Pham"
-  },
-  {
-    "id": 104,
-    "fieldName": "Ten",
-    "value": "Quoc D"
-  },
-  {
-    "id": 105,
-    "fieldName": "CMND",
-    "value": "214272013080"
-  },
-  {
-    "id": 106,
-    "fieldName": "I_CMND",
-    "value": "299664583240"
-  },
-  {
-    "id": 107,
-    "fieldName": "CMND_Enc",
-    "value": "368178180689"
-  },
-  {
-    "id": 108,
-    "fieldName": "Sotaikhoan",
-    "value": "9494489682"
-  },
-  {
-    "id": 109,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8932314462"
-  },
-  {
-    "id": 110,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "2932708234"
-  },
-  {
-    "id": 111,
-    "fieldName": "Holot",
-    "value": "Le"
-  },
-  {
-    "id": 112,
-    "fieldName": "Ten",
-    "value": "Duc I"
-  },
-  {
-    "id": 113,
-    "fieldName": "CMND",
-    "value": "807173354676"
-  },
-  {
-    "id": 114,
-    "fieldName": "I_CMND",
-    "value": "441132201802"
-  },
-  {
-    "id": 115,
-    "fieldName": "CMND_Enc",
-    "value": "277499645466"
-  },
-  {
-    "id": 116,
-    "fieldName": "Sotaikhoan",
-    "value": "3407166537"
-  },
-  {
-    "id": 117,
-    "fieldName": "I_Sotaikhoan",
-    "value": "4662637123"
-  },
-  {
-    "id": 118,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "8748352582"
-  },
-  {
-    "id": 119,
-    "fieldName": "Holot",
-    "value": "Do"
-  },
-  {
-    "id": 120,
-    "fieldName": "Ten",
-    "value": "Anh H"
-  },
-  {
-    "id": 121,
-    "fieldName": "CMND",
-    "value": "436793008558"
-  },
-  {
-    "id": 122,
-    "fieldName": "I_CMND",
-    "value": "948477298756"
-  },
-  {
-    "id": 123,
-    "fieldName": "CMND_Enc",
-    "value": "821821258751"
-  },
-  {
-    "id": 124,
-    "fieldName": "Sotaikhoan",
-    "value": "1742347445"
-  },
-  {
-    "id": 125,
-    "fieldName": "I_Sotaikhoan",
-    "value": "6111108747"
-  },
-  {
-    "id": 126,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "9721209515"
-  },
-  {
-    "id": 127,
-    "fieldName": "Holot",
-    "value": "Pham"
-  },
-  {
-    "id": 128,
-    "fieldName": "Ten",
-    "value": "Ngoc G"
-  },
-  {
-    "id": 129,
-    "fieldName": "CMND",
-    "value": "888034046686"
-  },
-  {
-    "id": 130,
-    "fieldName": "I_CMND",
-    "value": "587882121991"
-  },
-  {
-    "id": 131,
-    "fieldName": "CMND_Enc",
-    "value": "148091264039"
-  },
-  {
-    "id": 132,
-    "fieldName": "Sotaikhoan",
-    "value": "7095428168"
-  },
-  {
-    "id": 133,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8012971643"
-  },
-  {
     "id": 134,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "3665880365"
+    "fieldName": "Ten",
+    "value": "Bao J"
   },
   {
     "id": 135,
-    "fieldName": "Holot",
-    "value": "Tran"
+    "fieldName": "MaNhanVien",
+    "value": "NV3180"
   },
   {
     "id": 136,
-    "fieldName": "Ten",
-    "value": "Quoc D"
+    "fieldName": "CMND",
+    "value": "561902006518"
   },
   {
     "id": 137,
-    "fieldName": "CMND",
-    "value": "608531101701"
+    "fieldName": "I_CMND",
+    "value": "570662212985"
   },
   {
     "id": 138,
-    "fieldName": "I_CMND",
-    "value": "504168770109"
+    "fieldName": "CMND_Enc",
+    "value": "596144210356"
   },
   {
     "id": 139,
-    "fieldName": "CMND_Enc",
-    "value": "170397594047"
+    "fieldName": "Sotaikhoan",
+    "value": "1245522987"
   },
   {
     "id": 140,
-    "fieldName": "Sotaikhoan",
-    "value": "1466023717"
+    "fieldName": "I_Sotaikhoan",
+    "value": "2145921803"
   },
   {
     "id": 141,
-    "fieldName": "I_Sotaikhoan",
-    "value": "6311464233"
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7333678472"
   },
   {
     "id": 142,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "1108403021"
+    "fieldName": "Holot",
+    "value": "Ngo"
   },
   {
     "id": 143,
-    "fieldName": "Holot",
-    "value": "Ho"
+    "fieldName": "Ten",
+    "value": "Van A"
   },
   {
     "id": 144,
-    "fieldName": "Ten",
-    "value": "Linh K"
+    "fieldName": "MaNhanVien",
+    "value": "NV4853"
   },
   {
     "id": 145,
     "fieldName": "CMND",
-    "value": "611018733636"
+    "value": "590573056992"
   },
   {
     "id": 146,
     "fieldName": "I_CMND",
-    "value": "739853908778"
+    "value": "743806247029"
   },
   {
     "id": 147,
     "fieldName": "CMND_Enc",
-    "value": "796991739932"
+    "value": "371102648727"
   },
   {
     "id": 148,
     "fieldName": "Sotaikhoan",
-    "value": "7574640283"
+    "value": "7803990970"
   },
   {
     "id": 149,
     "fieldName": "I_Sotaikhoan",
-    "value": "9838952776"
+    "value": "5759234471"
   },
   {
     "id": 150,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "5059363469"
+    "value": "8033702319"
   },
   {
     "id": 151,
@@ -757,246 +757,1746 @@
   {
     "id": 152,
     "fieldName": "Ten",
-    "value": "Duc I"
+    "value": "Trang P"
   },
   {
     "id": 153,
-    "fieldName": "CMND",
-    "value": "864000351763"
+    "fieldName": "MaNhanVien",
+    "value": "NV3727"
   },
   {
     "id": 154,
-    "fieldName": "I_CMND",
-    "value": "545767977981"
+    "fieldName": "CMND",
+    "value": "407473554860"
   },
   {
     "id": 155,
-    "fieldName": "CMND_Enc",
-    "value": "176904148988"
+    "fieldName": "I_CMND",
+    "value": "496852403351"
   },
   {
     "id": 156,
-    "fieldName": "Sotaikhoan",
-    "value": "8750361270"
+    "fieldName": "CMND_Enc",
+    "value": "169684544463"
   },
   {
     "id": 157,
-    "fieldName": "I_Sotaikhoan",
-    "value": "8678561092"
+    "fieldName": "Sotaikhoan",
+    "value": "1676168421"
   },
   {
     "id": 158,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "6219134618"
+    "fieldName": "I_Sotaikhoan",
+    "value": "4745927824"
   },
   {
     "id": 159,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7533932947"
+  },
+  {
+    "id": 160,
+    "fieldName": "Holot",
+    "value": "Ta"
+  },
+  {
+    "id": 161,
+    "fieldName": "Ten",
+    "value": "Bao J"
+  },
+  {
+    "id": 162,
+    "fieldName": "MaNhanVien",
+    "value": "NV5912"
+  },
+  {
+    "id": 163,
+    "fieldName": "CMND",
+    "value": "933251567391"
+  },
+  {
+    "id": 164,
+    "fieldName": "I_CMND",
+    "value": "254608246768"
+  },
+  {
+    "id": 165,
+    "fieldName": "CMND_Enc",
+    "value": "122926902939"
+  },
+  {
+    "id": 166,
+    "fieldName": "Sotaikhoan",
+    "value": "1798112150"
+  },
+  {
+    "id": 167,
+    "fieldName": "I_Sotaikhoan",
+    "value": "8982597239"
+  },
+  {
+    "id": 168,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3691864041"
+  },
+  {
+    "id": 169,
+    "fieldName": "Holot",
+    "value": "Ta"
+  },
+  {
+    "id": 170,
+    "fieldName": "Ten",
+    "value": "Anh H"
+  },
+  {
+    "id": 171,
+    "fieldName": "MaNhanVien",
+    "value": "NV2939"
+  },
+  {
+    "id": 172,
+    "fieldName": "CMND",
+    "value": "275259659197"
+  },
+  {
+    "id": 173,
+    "fieldName": "I_CMND",
+    "value": "643354278056"
+  },
+  {
+    "id": 174,
+    "fieldName": "CMND_Enc",
+    "value": "708117155426"
+  },
+  {
+    "id": 175,
+    "fieldName": "Sotaikhoan",
+    "value": "3555656321"
+  },
+  {
+    "id": 176,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1955345537"
+  },
+  {
+    "id": 177,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6474354351"
+  },
+  {
+    "id": 178,
+    "fieldName": "Holot",
+    "value": "Pham"
+  },
+  {
+    "id": 179,
+    "fieldName": "Ten",
+    "value": "Trang P"
+  },
+  {
+    "id": 180,
+    "fieldName": "MaNhanVien",
+    "value": "NV4952"
+  },
+  {
+    "id": 181,
+    "fieldName": "CMND",
+    "value": "566854953850"
+  },
+  {
+    "id": 182,
+    "fieldName": "I_CMND",
+    "value": "929319141080"
+  },
+  {
+    "id": 183,
+    "fieldName": "CMND_Enc",
+    "value": "745233429651"
+  },
+  {
+    "id": 184,
+    "fieldName": "Sotaikhoan",
+    "value": "6305160342"
+  },
+  {
+    "id": 185,
+    "fieldName": "I_Sotaikhoan",
+    "value": "7271954644"
+  },
+  {
+    "id": 186,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "9922723063"
+  },
+  {
+    "id": 187,
+    "fieldName": "Holot",
+    "value": "Vo"
+  },
+  {
+    "id": 188,
+    "fieldName": "Ten",
+    "value": "Ngoc G"
+  },
+  {
+    "id": 189,
+    "fieldName": "MaNhanVien",
+    "value": "NV0231"
+  },
+  {
+    "id": 190,
+    "fieldName": "CMND",
+    "value": "406404042870"
+  },
+  {
+    "id": 191,
+    "fieldName": "I_CMND",
+    "value": "267974663989"
+  },
+  {
+    "id": 192,
+    "fieldName": "CMND_Enc",
+    "value": "105240793782"
+  },
+  {
+    "id": 193,
+    "fieldName": "Sotaikhoan",
+    "value": "3553440342"
+  },
+  {
+    "id": 194,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1977515194"
+  },
+  {
+    "id": 195,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "2227193073"
+  },
+  {
+    "id": 196,
+    "fieldName": "Holot",
+    "value": "Do"
+  },
+  {
+    "id": 197,
+    "fieldName": "Ten",
+    "value": "Kim L"
+  },
+  {
+    "id": 198,
+    "fieldName": "MaNhanVien",
+    "value": "NV8751"
+  },
+  {
+    "id": 199,
+    "fieldName": "CMND",
+    "value": "336890980656"
+  },
+  {
+    "id": 200,
+    "fieldName": "I_CMND",
+    "value": "274493552068"
+  },
+  {
+    "id": 201,
+    "fieldName": "CMND_Enc",
+    "value": "877693993558"
+  },
+  {
+    "id": 202,
+    "fieldName": "Sotaikhoan",
+    "value": "3660223333"
+  },
+  {
+    "id": 203,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9691572571"
+  },
+  {
+    "id": 204,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6461974809"
+  },
+  {
+    "id": 205,
+    "fieldName": "Holot",
+    "value": "Pham"
+  },
+  {
+    "id": 206,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 207,
+    "fieldName": "MaNhanVien",
+    "value": "NV2073"
+  },
+  {
+    "id": 208,
+    "fieldName": "CMND",
+    "value": "941629821539"
+  },
+  {
+    "id": 209,
+    "fieldName": "I_CMND",
+    "value": "850726264460"
+  },
+  {
+    "id": 210,
+    "fieldName": "CMND_Enc",
+    "value": "167135076022"
+  },
+  {
+    "id": 211,
+    "fieldName": "Sotaikhoan",
+    "value": "7540301973"
+  },
+  {
+    "id": 212,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6124453431"
+  },
+  {
+    "id": 213,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3319936135"
+  },
+  {
+    "id": 214,
+    "fieldName": "Holot",
+    "value": "Mai"
+  },
+  {
+    "id": 215,
+    "fieldName": "Ten",
+    "value": "Bao J"
+  },
+  {
+    "id": 216,
+    "fieldName": "MaNhanVien",
+    "value": "NV4494"
+  },
+  {
+    "id": 217,
+    "fieldName": "CMND",
+    "value": "213114812281"
+  },
+  {
+    "id": 218,
+    "fieldName": "I_CMND",
+    "value": "754648192232"
+  },
+  {
+    "id": 219,
+    "fieldName": "CMND_Enc",
+    "value": "173997741524"
+  },
+  {
+    "id": 220,
+    "fieldName": "Sotaikhoan",
+    "value": "9309500117"
+  },
+  {
+    "id": 221,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6704841644"
+  },
+  {
+    "id": 222,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "1594312071"
+  },
+  {
+    "id": 223,
+    "fieldName": "Holot",
+    "value": "Nguyen"
+  },
+  {
+    "id": 224,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 225,
+    "fieldName": "MaNhanVien",
+    "value": "NV0745"
+  },
+  {
+    "id": 226,
+    "fieldName": "CMND",
+    "value": "517010168081"
+  },
+  {
+    "id": 227,
+    "fieldName": "I_CMND",
+    "value": "521179644432"
+  },
+  {
+    "id": 228,
+    "fieldName": "CMND_Enc",
+    "value": "138248487718"
+  },
+  {
+    "id": 229,
+    "fieldName": "Sotaikhoan",
+    "value": "8370987661"
+  },
+  {
+    "id": 230,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4712367625"
+  },
+  {
+    "id": 231,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6288227800"
+  },
+  {
+    "id": 232,
+    "fieldName": "Holot",
+    "value": "Do"
+  },
+  {
+    "id": 233,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 234,
+    "fieldName": "MaNhanVien",
+    "value": "NV0893"
+  },
+  {
+    "id": 235,
+    "fieldName": "CMND",
+    "value": "491257417623"
+  },
+  {
+    "id": 236,
+    "fieldName": "I_CMND",
+    "value": "754474071330"
+  },
+  {
+    "id": 237,
+    "fieldName": "CMND_Enc",
+    "value": "464469358785"
+  },
+  {
+    "id": 238,
+    "fieldName": "Sotaikhoan",
+    "value": "6320115677"
+  },
+  {
+    "id": 239,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6493800024"
+  },
+  {
+    "id": 240,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3980491761"
+  },
+  {
+    "id": 241,
+    "fieldName": "Holot",
+    "value": "Mai"
+  },
+  {
+    "id": 242,
+    "fieldName": "Ten",
+    "value": "Van A"
+  },
+  {
+    "id": 243,
+    "fieldName": "MaNhanVien",
+    "value": "NV9066"
+  },
+  {
+    "id": 244,
+    "fieldName": "CMND",
+    "value": "481597082643"
+  },
+  {
+    "id": 245,
+    "fieldName": "I_CMND",
+    "value": "615379416985"
+  },
+  {
+    "id": 246,
+    "fieldName": "CMND_Enc",
+    "value": "662945045779"
+  },
+  {
+    "id": 247,
+    "fieldName": "Sotaikhoan",
+    "value": "2699887270"
+  },
+  {
+    "id": 248,
+    "fieldName": "I_Sotaikhoan",
+    "value": "7597996327"
+  },
+  {
+    "id": 249,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "4034047118"
+  },
+  {
+    "id": 250,
+    "fieldName": "Holot",
+    "value": "Duong"
+  },
+  {
+    "id": 251,
+    "fieldName": "Ten",
+    "value": "Ngoc G"
+  },
+  {
+    "id": 252,
+    "fieldName": "MaNhanVien",
+    "value": "NV4786"
+  },
+  {
+    "id": 253,
+    "fieldName": "CMND",
+    "value": "390355792387"
+  },
+  {
+    "id": 254,
+    "fieldName": "I_CMND",
+    "value": "377150435753"
+  },
+  {
+    "id": 255,
+    "fieldName": "CMND_Enc",
+    "value": "405964900141"
+  },
+  {
+    "id": 256,
+    "fieldName": "Sotaikhoan",
+    "value": "6583444930"
+  },
+  {
+    "id": 257,
+    "fieldName": "I_Sotaikhoan",
+    "value": "5033992825"
+  },
+  {
+    "id": 258,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "5570828113"
+  },
+  {
+    "id": 259,
+    "fieldName": "Holot",
+    "value": "Duong"
+  },
+  {
+    "id": 260,
+    "fieldName": "Ten",
+    "value": "Minh C"
+  },
+  {
+    "id": 261,
+    "fieldName": "MaNhanVien",
+    "value": "NV2068"
+  },
+  {
+    "id": 262,
+    "fieldName": "CMND",
+    "value": "150711229823"
+  },
+  {
+    "id": 263,
+    "fieldName": "I_CMND",
+    "value": "709761138617"
+  },
+  {
+    "id": 264,
+    "fieldName": "CMND_Enc",
+    "value": "635449182375"
+  },
+  {
+    "id": 265,
+    "fieldName": "Sotaikhoan",
+    "value": "1311570307"
+  },
+  {
+    "id": 266,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9462806178"
+  },
+  {
+    "id": 267,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7045593274"
+  },
+  {
+    "id": 268,
+    "fieldName": "Holot",
+    "value": "Vu"
+  },
+  {
+    "id": 269,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 270,
+    "fieldName": "MaNhanVien",
+    "value": "NV8042"
+  },
+  {
+    "id": 271,
+    "fieldName": "CMND",
+    "value": "605645347792"
+  },
+  {
+    "id": 272,
+    "fieldName": "I_CMND",
+    "value": "847373620112"
+  },
+  {
+    "id": 273,
+    "fieldName": "CMND_Enc",
+    "value": "693625626938"
+  },
+  {
+    "id": 274,
+    "fieldName": "Sotaikhoan",
+    "value": "5278201677"
+  },
+  {
+    "id": 275,
+    "fieldName": "I_Sotaikhoan",
+    "value": "2140169349"
+  },
+  {
+    "id": 276,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7625464411"
+  },
+  {
+    "id": 277,
     "fieldName": "Holot",
     "value": "Le"
   },
   {
-    "id": 160,
+    "id": 278,
     "fieldName": "Ten",
-    "value": "Hoai F"
+    "value": "Yen N"
   },
   {
-    "id": 161,
+    "id": 279,
+    "fieldName": "MaNhanVien",
+    "value": "NV1680"
+  },
+  {
+    "id": 280,
     "fieldName": "CMND",
-    "value": "124716848161"
+    "value": "235447068293"
   },
   {
-    "id": 162,
+    "id": 281,
     "fieldName": "I_CMND",
-    "value": "639590393602"
+    "value": "227649528249"
   },
   {
-    "id": 163,
+    "id": 282,
     "fieldName": "CMND_Enc",
-    "value": "551998598697"
+    "value": "895137224815"
   },
   {
-    "id": 164,
+    "id": 283,
     "fieldName": "Sotaikhoan",
-    "value": "4627125509"
+    "value": "9904586976"
   },
   {
-    "id": 165,
+    "id": 284,
     "fieldName": "I_Sotaikhoan",
-    "value": "5930400443"
+    "value": "7161404428"
   },
   {
-    "id": 166,
+    "id": 285,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "3703188722"
+    "value": "2785736751"
   },
   {
-    "id": 167,
+    "id": 286,
+    "fieldName": "Holot",
+    "value": "Mai"
+  },
+  {
+    "id": 287,
+    "fieldName": "Ten",
+    "value": "Trang P"
+  },
+  {
+    "id": 288,
+    "fieldName": "MaNhanVien",
+    "value": "NV0200"
+  },
+  {
+    "id": 289,
+    "fieldName": "CMND",
+    "value": "187525138707"
+  },
+  {
+    "id": 290,
+    "fieldName": "I_CMND",
+    "value": "926939990836"
+  },
+  {
+    "id": 291,
+    "fieldName": "CMND_Enc",
+    "value": "733812803930"
+  },
+  {
+    "id": 292,
+    "fieldName": "Sotaikhoan",
+    "value": "2139027119"
+  },
+  {
+    "id": 293,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6642201119"
+  },
+  {
+    "id": 294,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7099469983"
+  },
+  {
+    "id": 295,
+    "fieldName": "Holot",
+    "value": "Dang"
+  },
+  {
+    "id": 296,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 297,
+    "fieldName": "MaNhanVien",
+    "value": "NV9405"
+  },
+  {
+    "id": 298,
+    "fieldName": "CMND",
+    "value": "424493543665"
+  },
+  {
+    "id": 299,
+    "fieldName": "I_CMND",
+    "value": "942959595464"
+  },
+  {
+    "id": 300,
+    "fieldName": "CMND_Enc",
+    "value": "368318078969"
+  },
+  {
+    "id": 301,
+    "fieldName": "Sotaikhoan",
+    "value": "9303285822"
+  },
+  {
+    "id": 302,
+    "fieldName": "I_Sotaikhoan",
+    "value": "3196545325"
+  },
+  {
+    "id": 303,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3987248494"
+  },
+  {
+    "id": 304,
     "fieldName": "Holot",
     "value": "Pham"
   },
   {
-    "id": 168,
+    "id": 305,
     "fieldName": "Ten",
-    "value": "Thi B"
+    "value": "Trang P"
   },
   {
-    "id": 169,
+    "id": 306,
+    "fieldName": "MaNhanVien",
+    "value": "NV4658"
+  },
+  {
+    "id": 307,
     "fieldName": "CMND",
-    "value": "957357900533"
+    "value": "790757033266"
   },
   {
-    "id": 170,
+    "id": 308,
     "fieldName": "I_CMND",
-    "value": "849624247142"
+    "value": "476415064723"
   },
   {
-    "id": 171,
+    "id": 309,
     "fieldName": "CMND_Enc",
-    "value": "185138674229"
+    "value": "623060957599"
   },
   {
-    "id": 172,
+    "id": 310,
     "fieldName": "Sotaikhoan",
-    "value": "4728235839"
+    "value": "4783282817"
   },
   {
-    "id": 173,
+    "id": 311,
     "fieldName": "I_Sotaikhoan",
-    "value": "1579576044"
+    "value": "3476426797"
   },
   {
-    "id": 174,
+    "id": 312,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "5978639562"
+    "value": "6928691380"
   },
   {
-    "id": 175,
+    "id": 313,
+    "fieldName": "Holot",
+    "value": "Do"
+  },
+  {
+    "id": 314,
+    "fieldName": "Ten",
+    "value": "Trang P"
+  },
+  {
+    "id": 315,
+    "fieldName": "MaNhanVien",
+    "value": "NV7690"
+  },
+  {
+    "id": 316,
+    "fieldName": "CMND",
+    "value": "498837994177"
+  },
+  {
+    "id": 317,
+    "fieldName": "I_CMND",
+    "value": "422601660137"
+  },
+  {
+    "id": 318,
+    "fieldName": "CMND_Enc",
+    "value": "550144771997"
+  },
+  {
+    "id": 319,
+    "fieldName": "Sotaikhoan",
+    "value": "4776436931"
+  },
+  {
+    "id": 320,
+    "fieldName": "I_Sotaikhoan",
+    "value": "2094024844"
+  },
+  {
+    "id": 321,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6805759868"
+  },
+  {
+    "id": 322,
+    "fieldName": "Holot",
+    "value": "Ta"
+  },
+  {
+    "id": 323,
+    "fieldName": "Ten",
+    "value": "Phuc O"
+  },
+  {
+    "id": 324,
+    "fieldName": "MaNhanVien",
+    "value": "NV7843"
+  },
+  {
+    "id": 325,
+    "fieldName": "CMND",
+    "value": "312933106111"
+  },
+  {
+    "id": 326,
+    "fieldName": "I_CMND",
+    "value": "273665994394"
+  },
+  {
+    "id": 327,
+    "fieldName": "CMND_Enc",
+    "value": "203897019487"
+  },
+  {
+    "id": 328,
+    "fieldName": "Sotaikhoan",
+    "value": "6882074066"
+  },
+  {
+    "id": 329,
+    "fieldName": "I_Sotaikhoan",
+    "value": "8339176912"
+  },
+  {
+    "id": 330,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "8531118333"
+  },
+  {
+    "id": 331,
     "fieldName": "Holot",
     "value": "Pham"
   },
   {
-    "id": 176,
+    "id": 332,
+    "fieldName": "Ten",
+    "value": "Van A"
+  },
+  {
+    "id": 333,
+    "fieldName": "MaNhanVien",
+    "value": "NV7216"
+  },
+  {
+    "id": 334,
+    "fieldName": "CMND",
+    "value": "176040557040"
+  },
+  {
+    "id": 335,
+    "fieldName": "I_CMND",
+    "value": "101948728483"
+  },
+  {
+    "id": 336,
+    "fieldName": "CMND_Enc",
+    "value": "821970820395"
+  },
+  {
+    "id": 337,
+    "fieldName": "Sotaikhoan",
+    "value": "5972484792"
+  },
+  {
+    "id": 338,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9597198563"
+  },
+  {
+    "id": 339,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6242173772"
+  },
+  {
+    "id": 340,
+    "fieldName": "Holot",
+    "value": "Mai"
+  },
+  {
+    "id": 341,
     "fieldName": "Ten",
     "value": "Minh C"
   },
   {
-    "id": 177,
+    "id": 342,
+    "fieldName": "MaNhanVien",
+    "value": "NV5582"
+  },
+  {
+    "id": 343,
     "fieldName": "CMND",
-    "value": "161254244167"
+    "value": "826046287257"
   },
   {
-    "id": 178,
+    "id": 344,
     "fieldName": "I_CMND",
-    "value": "186685811677"
+    "value": "894370590668"
   },
   {
-    "id": 179,
+    "id": 345,
     "fieldName": "CMND_Enc",
-    "value": "617202223102"
+    "value": "488398407379"
   },
   {
-    "id": 180,
+    "id": 346,
     "fieldName": "Sotaikhoan",
-    "value": "2260333760"
+    "value": "8316648259"
   },
   {
-    "id": 181,
+    "id": 347,
     "fieldName": "I_Sotaikhoan",
-    "value": "4502336058"
+    "value": "3880327491"
   },
   {
-    "id": 182,
+    "id": 348,
     "fieldName": "Sotaikhoan_Enc",
-    "value": "4284046257"
+    "value": "6237376063"
   },
   {
-    "id": 183,
-    "fieldName": "Holot",
-    "value": "Hoang"
-  },
-  {
-    "id": 184,
-    "fieldName": "Ten",
-    "value": "Minh C"
-  },
-  {
-    "id": 185,
-    "fieldName": "CMND",
-    "value": "808876309692"
-  },
-  {
-    "id": 186,
-    "fieldName": "I_CMND",
-    "value": "555573674327"
-  },
-  {
-    "id": 187,
-    "fieldName": "CMND_Enc",
-    "value": "580111524229"
-  },
-  {
-    "id": 188,
-    "fieldName": "Sotaikhoan",
-    "value": "7891479686"
-  },
-  {
-    "id": 189,
-    "fieldName": "I_Sotaikhoan",
-    "value": "5837343724"
-  },
-  {
-    "id": 190,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "3877127510"
-  },
-  {
-    "id": 191,
-    "fieldName": "Holot",
-    "value": "Pham"
-  },
-  {
-    "id": 192,
-    "fieldName": "Ten",
-    "value": "Thi B"
-  },
-  {
-    "id": 193,
-    "fieldName": "CMND",
-    "value": "649860690160"
-  },
-  {
-    "id": 194,
-    "fieldName": "I_CMND",
-    "value": "422404017949"
-  },
-  {
-    "id": 195,
-    "fieldName": "CMND_Enc",
-    "value": "431021041916"
-  },
-  {
-    "id": 196,
-    "fieldName": "Sotaikhoan",
-    "value": "2043015306"
-  },
-  {
-    "id": 197,
-    "fieldName": "I_Sotaikhoan",
-    "value": "6946337725"
-  },
-  {
-    "id": 198,
-    "fieldName": "Sotaikhoan_Enc",
-    "value": "2042708205"
-  },
-  {
-    "id": 199,
+    "id": 349,
     "fieldName": "Holot",
     "value": "Tran"
   },
   {
-    "id": 200,
+    "id": 350,
     "fieldName": "Ten",
-    "value": "Ngoc G"
+    "value": "Hoai F"
+  },
+  {
+    "id": 351,
+    "fieldName": "MaNhanVien",
+    "value": "NV3020"
+  },
+  {
+    "id": 352,
+    "fieldName": "CMND",
+    "value": "947087372942"
+  },
+  {
+    "id": 353,
+    "fieldName": "I_CMND",
+    "value": "894035742189"
+  },
+  {
+    "id": 354,
+    "fieldName": "CMND_Enc",
+    "value": "552790822417"
+  },
+  {
+    "id": 355,
+    "fieldName": "Sotaikhoan",
+    "value": "9623534576"
+  },
+  {
+    "id": 356,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6859286614"
+  },
+  {
+    "id": 357,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "7166868574"
+  },
+  {
+    "id": 358,
+    "fieldName": "Holot",
+    "value": "Ngo"
+  },
+  {
+    "id": 359,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 360,
+    "fieldName": "MaNhanVien",
+    "value": "NV0841"
+  },
+  {
+    "id": 361,
+    "fieldName": "CMND",
+    "value": "517045625552"
+  },
+  {
+    "id": 362,
+    "fieldName": "I_CMND",
+    "value": "939668623711"
+  },
+  {
+    "id": 363,
+    "fieldName": "CMND_Enc",
+    "value": "158965931802"
+  },
+  {
+    "id": 364,
+    "fieldName": "Sotaikhoan",
+    "value": "3849232839"
+  },
+  {
+    "id": 365,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4642197907"
+  },
+  {
+    "id": 366,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "5419627962"
+  },
+  {
+    "id": 367,
+    "fieldName": "Holot",
+    "value": "Truong"
+  },
+  {
+    "id": 368,
+    "fieldName": "Ten",
+    "value": "Tuan M"
+  },
+  {
+    "id": 369,
+    "fieldName": "MaNhanVien",
+    "value": "NV4136"
+  },
+  {
+    "id": 370,
+    "fieldName": "CMND",
+    "value": "599410093881"
+  },
+  {
+    "id": 371,
+    "fieldName": "I_CMND",
+    "value": "654818085172"
+  },
+  {
+    "id": 372,
+    "fieldName": "CMND_Enc",
+    "value": "820151617123"
+  },
+  {
+    "id": 373,
+    "fieldName": "Sotaikhoan",
+    "value": "5871743247"
+  },
+  {
+    "id": 374,
+    "fieldName": "I_Sotaikhoan",
+    "value": "7049001493"
+  },
+  {
+    "id": 375,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "1116402431"
+  },
+  {
+    "id": 376,
+    "fieldName": "Holot",
+    "value": "Ly"
+  },
+  {
+    "id": 377,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 378,
+    "fieldName": "MaNhanVien",
+    "value": "NV7827"
+  },
+  {
+    "id": 379,
+    "fieldName": "CMND",
+    "value": "277660601409"
+  },
+  {
+    "id": 380,
+    "fieldName": "I_CMND",
+    "value": "219883823727"
+  },
+  {
+    "id": 381,
+    "fieldName": "CMND_Enc",
+    "value": "812896561232"
+  },
+  {
+    "id": 382,
+    "fieldName": "Sotaikhoan",
+    "value": "3376077463"
+  },
+  {
+    "id": 383,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1546696950"
+  },
+  {
+    "id": 384,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "8055556030"
+  },
+  {
+    "id": 385,
+    "fieldName": "Holot",
+    "value": "Ngo"
+  },
+  {
+    "id": 386,
+    "fieldName": "Ten",
+    "value": "Hoai F"
+  },
+  {
+    "id": 387,
+    "fieldName": "MaNhanVien",
+    "value": "NV1869"
+  },
+  {
+    "id": 388,
+    "fieldName": "CMND",
+    "value": "488136971784"
+  },
+  {
+    "id": 389,
+    "fieldName": "I_CMND",
+    "value": "790933616150"
+  },
+  {
+    "id": 390,
+    "fieldName": "CMND_Enc",
+    "value": "164847210990"
+  },
+  {
+    "id": 391,
+    "fieldName": "Sotaikhoan",
+    "value": "6464693977"
+  },
+  {
+    "id": 392,
+    "fieldName": "I_Sotaikhoan",
+    "value": "9333798503"
+  },
+  {
+    "id": 393,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "2982979741"
+  },
+  {
+    "id": 394,
+    "fieldName": "Holot",
+    "value": "Le"
+  },
+  {
+    "id": 395,
+    "fieldName": "Ten",
+    "value": "Kim L"
+  },
+  {
+    "id": 396,
+    "fieldName": "MaNhanVien",
+    "value": "NV1070"
+  },
+  {
+    "id": 397,
+    "fieldName": "CMND",
+    "value": "835339233454"
+  },
+  {
+    "id": 398,
+    "fieldName": "I_CMND",
+    "value": "656795048359"
+  },
+  {
+    "id": 399,
+    "fieldName": "CMND_Enc",
+    "value": "900593162298"
+  },
+  {
+    "id": 400,
+    "fieldName": "Sotaikhoan",
+    "value": "3597724331"
+  },
+  {
+    "id": 401,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4877520294"
+  },
+  {
+    "id": 402,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "5510938155"
+  },
+  {
+    "id": 403,
+    "fieldName": "Holot",
+    "value": "Phan"
+  },
+  {
+    "id": 404,
+    "fieldName": "Ten",
+    "value": "Trang P"
+  },
+  {
+    "id": 405,
+    "fieldName": "MaNhanVien",
+    "value": "NV6565"
+  },
+  {
+    "id": 406,
+    "fieldName": "CMND",
+    "value": "869945806981"
+  },
+  {
+    "id": 407,
+    "fieldName": "I_CMND",
+    "value": "317363871943"
+  },
+  {
+    "id": 408,
+    "fieldName": "CMND_Enc",
+    "value": "977630621959"
+  },
+  {
+    "id": 409,
+    "fieldName": "Sotaikhoan",
+    "value": "8377088167"
+  },
+  {
+    "id": 410,
+    "fieldName": "I_Sotaikhoan",
+    "value": "6587537178"
+  },
+  {
+    "id": 411,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6923206003"
+  },
+  {
+    "id": 412,
+    "fieldName": "Holot",
+    "value": "Ho"
+  },
+  {
+    "id": 413,
+    "fieldName": "Ten",
+    "value": "Kim L"
+  },
+  {
+    "id": 414,
+    "fieldName": "MaNhanVien",
+    "value": "NV8056"
+  },
+  {
+    "id": 415,
+    "fieldName": "CMND",
+    "value": "851347210313"
+  },
+  {
+    "id": 416,
+    "fieldName": "I_CMND",
+    "value": "508678332797"
+  },
+  {
+    "id": 417,
+    "fieldName": "CMND_Enc",
+    "value": "219664972382"
+  },
+  {
+    "id": 418,
+    "fieldName": "Sotaikhoan",
+    "value": "7393195616"
+  },
+  {
+    "id": 419,
+    "fieldName": "I_Sotaikhoan",
+    "value": "5296710795"
+  },
+  {
+    "id": 420,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6204041308"
+  },
+  {
+    "id": 421,
+    "fieldName": "Holot",
+    "value": "Nguyen"
+  },
+  {
+    "id": 422,
+    "fieldName": "Ten",
+    "value": "Yen N"
+  },
+  {
+    "id": 423,
+    "fieldName": "MaNhanVien",
+    "value": "NV1213"
+  },
+  {
+    "id": 424,
+    "fieldName": "CMND",
+    "value": "180092702123"
+  },
+  {
+    "id": 425,
+    "fieldName": "I_CMND",
+    "value": "279368618081"
+  },
+  {
+    "id": 426,
+    "fieldName": "CMND_Enc",
+    "value": "311521368324"
+  },
+  {
+    "id": 427,
+    "fieldName": "Sotaikhoan",
+    "value": "4633987776"
+  },
+  {
+    "id": 428,
+    "fieldName": "I_Sotaikhoan",
+    "value": "2232285036"
+  },
+  {
+    "id": 429,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6698759353"
+  },
+  {
+    "id": 430,
+    "fieldName": "Holot",
+    "value": "Ly"
+  },
+  {
+    "id": 431,
+    "fieldName": "Ten",
+    "value": "Bao J"
+  },
+  {
+    "id": 432,
+    "fieldName": "MaNhanVien",
+    "value": "NV9453"
+  },
+  {
+    "id": 433,
+    "fieldName": "CMND",
+    "value": "798400899699"
+  },
+  {
+    "id": 434,
+    "fieldName": "I_CMND",
+    "value": "757132452561"
+  },
+  {
+    "id": 435,
+    "fieldName": "CMND_Enc",
+    "value": "689227460591"
+  },
+  {
+    "id": 436,
+    "fieldName": "Sotaikhoan",
+    "value": "9986353481"
+  },
+  {
+    "id": 437,
+    "fieldName": "I_Sotaikhoan",
+    "value": "8106906538"
+  },
+  {
+    "id": 438,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "6923301988"
+  },
+  {
+    "id": 439,
+    "fieldName": "Holot",
+    "value": "Dinh"
+  },
+  {
+    "id": 440,
+    "fieldName": "Ten",
+    "value": "Kim L"
+  },
+  {
+    "id": 441,
+    "fieldName": "MaNhanVien",
+    "value": "NV0878"
+  },
+  {
+    "id": 442,
+    "fieldName": "CMND",
+    "value": "684850587137"
+  },
+  {
+    "id": 443,
+    "fieldName": "I_CMND",
+    "value": "638263151675"
+  },
+  {
+    "id": 444,
+    "fieldName": "CMND_Enc",
+    "value": "252250635901"
+  },
+  {
+    "id": 445,
+    "fieldName": "Sotaikhoan",
+    "value": "2188332531"
+  },
+  {
+    "id": 446,
+    "fieldName": "I_Sotaikhoan",
+    "value": "7292076361"
+  },
+  {
+    "id": 447,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "8868054898"
+  },
+  {
+    "id": 448,
+    "fieldName": "Holot",
+    "value": "Pham"
+  },
+  {
+    "id": 449,
+    "fieldName": "Ten",
+    "value": "Phuc O"
+  },
+  {
+    "id": 450,
+    "fieldName": "MaNhanVien",
+    "value": "NV2485"
+  },
+  {
+    "id": 451,
+    "fieldName": "CMND",
+    "value": "369419548116"
+  },
+  {
+    "id": 452,
+    "fieldName": "I_CMND",
+    "value": "220342736258"
+  },
+  {
+    "id": 453,
+    "fieldName": "CMND_Enc",
+    "value": "299380463457"
+  },
+  {
+    "id": 454,
+    "fieldName": "Sotaikhoan",
+    "value": "5310195918"
+  },
+  {
+    "id": 455,
+    "fieldName": "I_Sotaikhoan",
+    "value": "5659161352"
+  },
+  {
+    "id": 456,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "5646751885"
+  },
+  {
+    "id": 457,
+    "fieldName": "Holot",
+    "value": "Ly"
+  },
+  {
+    "id": 458,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 459,
+    "fieldName": "MaNhanVien",
+    "value": "NV2444"
+  },
+  {
+    "id": 460,
+    "fieldName": "CMND",
+    "value": "607507949295"
+  },
+  {
+    "id": 461,
+    "fieldName": "I_CMND",
+    "value": "499127439409"
+  },
+  {
+    "id": 462,
+    "fieldName": "CMND_Enc",
+    "value": "608002483225"
+  },
+  {
+    "id": 463,
+    "fieldName": "Sotaikhoan",
+    "value": "4311931853"
+  },
+  {
+    "id": 464,
+    "fieldName": "I_Sotaikhoan",
+    "value": "2439622619"
+  },
+  {
+    "id": 465,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "9673185158"
+  },
+  {
+    "id": 466,
+    "fieldName": "Holot",
+    "value": "Ngo"
+  },
+  {
+    "id": 467,
+    "fieldName": "Ten",
+    "value": "Hoai F"
+  },
+  {
+    "id": 468,
+    "fieldName": "MaNhanVien",
+    "value": "NV9221"
+  },
+  {
+    "id": 469,
+    "fieldName": "CMND",
+    "value": "397982492151"
+  },
+  {
+    "id": 470,
+    "fieldName": "I_CMND",
+    "value": "988335239225"
+  },
+  {
+    "id": 471,
+    "fieldName": "CMND_Enc",
+    "value": "185569774204"
+  },
+  {
+    "id": 472,
+    "fieldName": "Sotaikhoan",
+    "value": "2125089309"
+  },
+  {
+    "id": 473,
+    "fieldName": "I_Sotaikhoan",
+    "value": "4226113732"
+  },
+  {
+    "id": 474,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3316787198"
+  },
+  {
+    "id": 475,
+    "fieldName": "Holot",
+    "value": "Trinh"
+  },
+  {
+    "id": 476,
+    "fieldName": "Ten",
+    "value": "Linh K"
+  },
+  {
+    "id": 477,
+    "fieldName": "MaNhanVien",
+    "value": "NV4978"
+  },
+  {
+    "id": 478,
+    "fieldName": "CMND",
+    "value": "858663022120"
+  },
+  {
+    "id": 479,
+    "fieldName": "I_CMND",
+    "value": "363313768191"
+  },
+  {
+    "id": 480,
+    "fieldName": "CMND_Enc",
+    "value": "986666495028"
+  },
+  {
+    "id": 481,
+    "fieldName": "Sotaikhoan",
+    "value": "8478529823"
+  },
+  {
+    "id": 482,
+    "fieldName": "I_Sotaikhoan",
+    "value": "8184602688"
+  },
+  {
+    "id": 483,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "2503068227"
+  },
+  {
+    "id": 484,
+    "fieldName": "Holot",
+    "value": "Hoang"
+  },
+  {
+    "id": 485,
+    "fieldName": "Ten",
+    "value": "Duc I"
+  },
+  {
+    "id": 486,
+    "fieldName": "MaNhanVien",
+    "value": "NV1395"
+  },
+  {
+    "id": 487,
+    "fieldName": "CMND",
+    "value": "342910249529"
+  },
+  {
+    "id": 488,
+    "fieldName": "I_CMND",
+    "value": "362241791770"
+  },
+  {
+    "id": 489,
+    "fieldName": "CMND_Enc",
+    "value": "209737811619"
+  },
+  {
+    "id": 490,
+    "fieldName": "Sotaikhoan",
+    "value": "1041531046"
+  },
+  {
+    "id": 491,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1855256552"
+  },
+  {
+    "id": 492,
+    "fieldName": "Sotaikhoan_Enc",
+    "value": "3792347639"
+  },
+  {
+    "id": 493,
+    "fieldName": "Holot",
+    "value": "Ly"
+  },
+  {
+    "id": 494,
+    "fieldName": "Ten",
+    "value": "Quoc D"
+  },
+  {
+    "id": 495,
+    "fieldName": "MaNhanVien",
+    "value": "NV4066"
+  },
+  {
+    "id": 496,
+    "fieldName": "CMND",
+    "value": "459422681391"
+  },
+  {
+    "id": 497,
+    "fieldName": "I_CMND",
+    "value": "726541280440"
+  },
+  {
+    "id": 498,
+    "fieldName": "CMND_Enc",
+    "value": "813181846360"
+  },
+  {
+    "id": 499,
+    "fieldName": "Sotaikhoan",
+    "value": "4882343658"
+  },
+  {
+    "id": 500,
+    "fieldName": "I_Sotaikhoan",
+    "value": "1104906255"
   }
 ]

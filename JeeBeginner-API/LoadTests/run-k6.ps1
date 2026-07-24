@@ -1,4 +1,4 @@
-# run-k6.ps1 - Chạy K6 và TỰ ĐỘNG đánh số lần chạy (_lan1, _lan2, _lan3...)
+﻿# run-k6.ps1 - Chạy K6 và TỰ ĐỘNG đánh số lần chạy (_lan1, _lan2, _lan3...)
 # Người dùng không cần tự nhớ/tự gõ số lần - script tự tìm số tiếp theo.
 #
 # Cách dùng (gõ y hệt mỗi lần, không cần đổi gì):
