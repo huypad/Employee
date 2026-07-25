@@ -8,9 +8,10 @@ import { SharedArray } from 'k6/data';
 //   k6 run --env LOAD_LEVEL=100 --env ALGO=rsa  test.js
 //   k6 run --env LOAD_LEVEL=200 --env ALGO=fpe  test.js
 //   k6 run --env LOAD_LEVEL=50  --env ALGO=hash test.js
+//   k6 run --env LOAD_LEVEL=50  --env ALGO=hashindex test.js
 
 const LOAD_LEVEL = __ENV.LOAD_LEVEL || '50';
-const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe / hash
+const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe / hash / hashindex
 
 export const options = {
   scenarios: {
@@ -19,6 +20,29 @@ export const options = {
       vus: parseInt(LOAD_LEVEL),
       duration: '30s',
     },
+  },
+  // THRESHOLDS - tiêu chuẩn để K6 tự đánh giá PASS/FAIL cho cả đợt test.
+  // Nếu vi phạm bất kỳ ngưỡng nào, K6 báo "✗ THRESHOLDS" ở cuối kết quả
+  // và thoát chương trình với exit code khác 0 (hữu ích để tự động hóa
+  // kiểm tra pass/fail sau này, ví dụ trong CI/CD).
+  thresholds: {
+    // Ngưỡng chung cho MỌI request, bất kể thuật toán nào 
+    http_req_failed: ['rate<0.01'],      // dưới 1% request bị lỗi (status không phải 2xx)
+    checks: ['rate>0.99'],                // trên 99% các check (status 200, round-trip đúng...) phải đạt
+    http_req_duration: ['p(95)<200'],     // 95% request phải xong dưới 200ms (dựa theo số liệu thực tế đã đo, kể cả RSA ở 200 VUs vẫn thường dưới ngưỡng này)
+
+    // Ngưỡng riêng cho từng loại thao tác (đo từ CLIENT, round-trip) 
+    // Dựa theo số liệu thực tế đã đo được trước đó cho từng thuật toán
+    'encrypt_duration_ms': ['p(95)<150'],
+    'decrypt_duration_ms': ['p(95)<150'],
+    'hash_duration_ms': ['p(95)<100'],
+    'hashindex_duration_ms': ['p(95)<100'],
+
+    // Ngưỡng riêng cho thời gian THUẦN thuật toán (đo từ SERVER, bọc sát) 
+    // Ngưỡng này rất chặt vì bản chất thuật toán chạy cực nhanh (dưới 1ms hầu hết trường hợp)
+    'encrypt_server_ms': ['p(95)<50'],
+    'decrypt_server_ms': ['p(95)<50'],
+    'hash_server_ms': ['p(95)<50'],
   },
 };
 
@@ -89,6 +113,7 @@ export default function () {
     sleep(1);
     return;
   }
+
   // TRƯỜNG HỢP HASH INDEX (tìm kiếm gần đúng): cũng 1 chiều như hash thường,
   // khác ở chỗ server chuẩn hóa chuỗi trước khi hash (viết hoa, gộp khoảng trắng)
   if (ALGO === 'hashindex') {
@@ -101,6 +126,7 @@ export default function () {
     sleep(1);
     return;
   }
+
   // AES / RSA / FPE: có cả 2 chiều Encrypt + Decrypt
   const encryptUrl = `${HOST}/api/encryptiontest/${ALGO}/field/encrypt`;
   const encryptRes = http.post(encryptUrl, JSON.stringify({ fieldName, value }), params);
@@ -142,12 +168,9 @@ export default function () {
   sleep(1);
 }
 
-// CÁCH CHẠY (đủ 5 loại: plaintext, aes, rsa, fpe, hash):
+// CÁCH CHẠY (đủ 6 loại: plaintext, aes, rsa, fpe, hash, hashindex):
 //   k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=results_hash_50vu.json  test.js
-//   k6 run --env LOAD_LEVEL=100 --env ALGO=hash --out json=results_hash_100vu.json test.js
-//   k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=results_hash_200vu.json test.js
-// (tương tự cho plaintext / aes / rsa / fpe)
+// (tương tự cho các thuật toán khác)
 //
-// Kết quả in ra sẽ có 2 nhóm chỉ số riêng biệt để so sánh:
-//   encrypt_duration_ms....: đo từ CLIENT (round-trip, gồm cả network)
-//   encrypt_server_ms......: đo từ SERVER (bọc sát thuật toán, không tính network)
+// Kết quả sẽ có thêm dòng "THRESHOLDS" ở cuối, đánh dấu ✓ (đạt) hoặc ✗ (không đạt)
+// cho từng ngưỡng đã cấu hình ở trên.
