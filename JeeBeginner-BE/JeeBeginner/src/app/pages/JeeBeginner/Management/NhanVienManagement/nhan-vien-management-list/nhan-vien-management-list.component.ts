@@ -286,11 +286,21 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
   }
 
   changeFilter(filter: any): void {
-    this.nhanVienManagementService.patchState({ filter });
+    // ITableService also serializes searchTerm as filter.keyword. Clear it so
+    // the request contains exactly one keyword entry.
+    this.nhanVienManagementService.patchState({ filter, searchTerm: '' });
   }
 
   search(searchTerm: string): void {
-    this.nhanVienManagementService.patchState({ searchTerm });
+    // The employee API reads the keyword from filter.keyword. Keeping the
+    // term only in ITableState.searchTerm meant the server never received it.
+    const filter = { ...(this.nhanVienManagementService.filter || {}) };
+    if (searchTerm && searchTerm.trim()) {
+      filter['keyword'] = searchTerm.trim();
+    } else {
+      delete filter['keyword'];
+    }
+    this.nhanVienManagementService.patchState({ filter });
   }
 
   configShowSearch(): void {

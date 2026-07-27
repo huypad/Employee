@@ -8,7 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlTypes;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
@@ -31,20 +31,41 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
         private const string SelectColumns = @"SELECT
             CAST(Id_NV AS INT) AS Id, ISNULL(MaNV, '') AS MaNV,
             LTRIM(RTRIM(CONCAT(ISNULL(Holot, ''), ' ', ISNULL(Ten, '')))) AS HoTen,
-            ISNULL(NULLIF(Mobile, ''), ISNULL(Thuongtru_Phone, '')) AS SDT,
+            ISNULL(Mobile, '') AS SDT,
             ISNULL(CMND, '') AS CCCD, ISNULL(Sotaikhoan, '') AS SoTaiKhoan, ISNULL(Email, '') AS Email,
-            ISNULL(NULLIF(Thuongtru_diachi, ''), ISNULL(Tamtru_diachi, '')) AS DiaChi,
-            ISNULL(CONVERT(NVARCHAR(50), Id_bp), '') AS PhongBan,
-            ISNULL(NULLIF(Tenchucvu, ''), CONVERT(NVARCHAR(50), Chucvu)) AS ChucVu,
+            ISNULL(DiaChi, '') AS DiaChi,
+            ISNULL(PhongBan, '') AS PhongBan,
+            ISNULL(Tenchucvu, '') AS ChucVu,
             ISNULL(CONVERT(INT, Status), CASE WHEN ISNULL(Disable, 0) = 1 THEN 0 ELSE 1 END) AS Status,
             DateCreated AS CreatedDate FROM dbo.Tbl_Nhanvien";
 
-        public async Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr)
+        public async Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr, int page, int record)
         {
             string where = string.IsNullOrWhiteSpace(whereStr) ? "1 = 1" : whereStr;
-            using DpsConnection cnn = new DpsConnection(_connectionString);
-            DataTable dt = await cnn.CreateDataTableAsync($"{SelectColumns} WHERE {where} ORDER BY TRY_CONVERT(INT, REPLACE(MaNV, 'NV', '')), Id_NV");
+            page = Math.Max(1, page);
+            record = Math.Max(1, record);
+            int offset = (page - 1) * record;
+            string sql = $@"{SelectColumns}
+                WHERE {where}
+                ORDER BY TRY_CONVERT(INT, REPLACE(MaNV, 'NV', '')), Id_NV
+                OFFSET {offset} ROWS FETCH NEXT {record} ROWS ONLY";
+            DataTable dt = new DataTable();
+            using SqlConnection cnn = new SqlConnection(_connectionString);
+            using SqlCommand command = new SqlCommand(sql, cnn);
+            await cnn.OpenAsync();
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+            dt.Load(reader);
             return dt.AsEnumerable().Select(MapNhanVien).ToList();
+        }
+
+        public async Task<int> CountNhanVien(string whereStr)
+        {
+            string where = string.IsNullOrWhiteSpace(whereStr) ? "1 = 1" : whereStr;
+            using SqlConnection cnn = new SqlConnection(_connectionString);
+            using SqlCommand command = new SqlCommand($"SELECT COUNT(1) FROM dbo.{TableName} WHERE {where}", cnn);
+            await cnn.OpenAsync();
+            object total = await command.ExecuteScalarAsync();
+            return total == null || total == DBNull.Value ? 0 : Convert.ToInt32(total);
         }
 
         public async Task<NhanVienModel> GetNhanVienById(int id)
@@ -68,7 +89,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
-                NhanVienCryptoModel enc = Encrypt(hoLot, ten, model.CCCD, model.SoTaiKhoan);
+                NhanVienCryptoModel enc = Encrypt(model.MaNV, hoLot, ten, model.CCCD, model.SoTaiKhoan);
                 string sql = RawInsertSql(nextId, model, hoLot, ten, enc);
                 cnn.ExecuteNonQuery(sql);
                 model.Id = nextId;
@@ -86,7 +107,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
                 DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}' AND Id_NV <> {model.Id}");
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
-                NhanVienCryptoModel enc = Encrypt(hoLot, ten, model.CCCD, model.SoTaiKhoan);
+                NhanVienCryptoModel enc = Encrypt(model.MaNV, hoLot, ten, model.CCCD, model.SoTaiKhoan);
                 string sql = RawUpdateSql(model.Id, model, hoLot, ten, enc);
                 cnn.ExecuteNonQuery(sql);
                 return new ReturnSqlModel();
@@ -94,24 +115,24 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             catch (Exception ex) { return new ReturnSqlModel(ex.Message, "0"); }
         }
 
-        private NhanVienCryptoModel Encrypt(string hoLot, string ten, string cccd, string soTaiKhoan) =>
+        private NhanVienCryptoModel Encrypt(string maNV, string hoLot, string ten, string cccd, string soTaiKhoan) =>
             _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
-            { I_Holot = hoLot, I_Ten = ten, I_CMND = cccd, I_Sotaikhoan = soTaiKhoan });
+            { I_MaNV = maNV, I_Holot = hoLot, I_Ten = ten, I_CMND = cccd, I_Sotaikhoan = soTaiKhoan });
 
         private string RawInsertSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
         {
             string now = $"'{DateTime.Now:yyyy-MM-dd HH:mm:ss}'";
             return $@"INSERT INTO dbo.{TableName}
-(Id_NV,MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,Thuongtru_diachi,Id_bp,Tenchucvu,
+(Id_NV,MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,DiaChi,PhongBan,Tenchucvu,
  LastModified,Status,Disable,DateCreated,
- Holot_Enc,Ten_Enc,CMND_Enc,CMND_FPE,CMNDHash,SotaikhoanHash,
- I_Holot,I_Ten,I_CMND,I_Sotaikhoan)
+ MaNV_Enc,Holot_Enc,Ten_Enc,CMND_Enc,CMND_FPE,CMNDHash,
+ I_MaNV,I_Holot,I_Ten,I_CMND,I_Sotaikhoan)
 VALUES(
  {id},{S(m.MaNV)},{S(hoLot)},{S(ten)},{S(m.SDT)},{S(m.CCCD)},{SN(m.SoTaiKhoan)},{SN(m.Email)},
- {SN(m.DiaChi)},{Dec(m.PhongBan)},{SN(m.ChucVu)},
+ {SN(m.DiaChi)},{SN(m.PhongBan)},{SN(m.ChucVu)},
  {now},1,0,{now},
- {S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},{SN(enc.SotaikhoanHash)},
- {Hex(m.CCCD != null ? hoLot : null)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)})";
+ {S(enc.MaNV_Enc)},{S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},
+ {Hex(m.MaNV)},{Hex(hoLot)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)})";
         }
 
         private string RawUpdateSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
@@ -119,11 +140,11 @@ VALUES(
             string now = $"'{DateTime.Now:yyyy-MM-dd HH:mm:ss}'";
             return $@"UPDATE dbo.{TableName} SET
  MaNV={S(m.MaNV)},Holot={S(hoLot)},Ten={S(ten)},Mobile={S(m.SDT)},CMND={S(m.CCCD)},
- Sotaikhoan={SN(m.SoTaiKhoan)},Email={SN(m.Email)},Thuongtru_diachi={SN(m.DiaChi)},
- Id_bp={Dec(m.PhongBan)},Tenchucvu={SN(m.ChucVu)},LastModified={now},
- Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
- CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},SotaikhoanHash={SN(enc.SotaikhoanHash)},
- I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)}
+ Sotaikhoan={SN(m.SoTaiKhoan)},Email={SN(m.Email)},DiaChi={SN(m.DiaChi)},
+ PhongBan={SN(m.PhongBan)},Tenchucvu={SN(m.ChucVu)},LastModified={now},
+ MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
+ CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
+ I_MaNV={Hex(m.MaNV)},I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)}
 WHERE Id_NV={id}";
         }
 
@@ -152,9 +173,9 @@ WHERE Id_NV={id}";
         public async Task<int> EncryptExistingNhanViens()
         {
             using DpsConnection cnn = new DpsConnection(_connectionString);
-            DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, Holot, Ten, CMND, Sotaikhoan
+            DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan
         FROM dbo.Tbl_Nhanvien
-        WHERE Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL
+        WHERE MaNV_Enc IS NULL OR I_MaNV IS NULL OR Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL
             OR CMND_Enc NOT LIKE 'RSAHYBRID:%'
             OR I_Holot IS NULL OR I_Ten IS NULL OR I_CMND IS NULL OR I_Sotaikhoan IS NULL");
 
@@ -163,22 +184,52 @@ WHERE Id_NV={id}";
             foreach (DataRow row in rows.Rows)
             {
                 string holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]);
+                string maNV = row["MaNV"] == DBNull.Value ? null : Convert.ToString(row["MaNV"]);
                 string ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]);
                 string cmnd = row["CMND"] == DBNull.Value ? null : Convert.ToString(row["CMND"]);
                 string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
                 int id = Convert.ToInt32(row["Id_NV"]);
 
-                NhanVienCryptoModel enc = Encrypt(holot, ten, cmnd, sotaikhoan);
+                NhanVienCryptoModel enc = Encrypt(maNV, holot, ten, cmnd, sotaikhoan);
                 string sql = $@"UPDATE dbo.{TableName} SET
-                    Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
-                    CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},SotaikhoanHash={SN(enc.SotaikhoanHash)},
-                    I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},
+                    MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
+                    CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
+                    I_MaNV={Hex(maNV)},I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},
                     LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}'
                 WHERE Id_NV={id}";
                 cnn.ExecuteNonQuery(sql);
                 updated++;
             }
 
+            return updated;
+        }
+
+        public async Task<int> RebuildSearchIndexes(int batchSize)
+        {
+            batchSize = Math.Clamp(batchSize, 1, 5000);
+            using DpsConnection cnn = new DpsConnection(_connectionString);
+            DataTable rows = await cnn.CreateDataTableAsync($@"SELECT TOP {batchSize} Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan
+                FROM dbo.Tbl_Nhanvien
+                -- I_MaNV is the progress marker shown to the administrator.
+                -- Only take rows that still lack this marker so each completed batch
+                -- increases the I_MaNV counter and is not repeatedly reprocessed.
+                WHERE I_MaNV IS NULL
+                ORDER BY Id_NV");
+
+            int updated = 0;
+            foreach (DataRow row in rows.Rows)
+            {
+                int id = Convert.ToInt32(row["Id_NV"]);
+                string maNV = row["MaNV"] == DBNull.Value ? null : Convert.ToString(row["MaNV"]);
+                string holot = row["Holot"] == DBNull.Value ? null : Convert.ToString(row["Holot"]);
+                string ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]);
+                string cmnd = row["CMND"] == DBNull.Value ? null : Convert.ToString(row["CMND"]);
+                string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
+                cnn.ExecuteNonQuery($@"UPDATE dbo.{TableName} SET
+                    I_MaNV={Hex(maNV)}, I_Holot={Hex(holot)}, I_Ten={Hex(ten)}, I_CMND={Hex(cmnd)}, I_Sotaikhoan={Hex(sotaikhoan)},
+                    LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}' WHERE Id_NV={id}");
+                updated++;
+            }
             return updated;
         }
 
@@ -216,7 +267,6 @@ WHERE Id_NV={id}";
             AddString("CMND_Enc", encrypted.CMND_Enc);
             AddString("CMND_FPE", encrypted.CMND_FPE);
             AddString("CMNDHash", encrypted.CMNDHash);
-            AddString("SotaikhoanHash", encrypted.SotaikhoanHash);
 
             // 2. Các cột VARBINARY — phải khai báo rõ DBNull để DPS không tự điền NVARCHAR
             // (UpdateBinaryIndexes sẽ ghi đúng giá trị byte sau khi Insert/Update hoàn tất)
@@ -242,12 +292,12 @@ WHERE Id_NV={id}";
             string query = $@"{SelectColumns} 
 WHERE 
     -- 1. TÌM KIẾM TRÊN CÁC CỘT MÃ HÓA (Đã tối ưu mã Hexa, Database sẽ ăn Index rất sâu)
-    (I_Holot = {hexHash}
+    (I_MaNV = {hexHash}
+     OR I_Holot = {hexHash}
      OR I_Ten = {hexHash}
      OR I_CMND = {hexHash}
      OR I_Sotaikhoan = {hexHash}
      -- Hai cột này DB đang lưu kiểu NVARCHAR, vẫn dùng chuỗi bình thường
-     OR SotaikhoanHash = N'{hashSafe}'
      OR CMNDHash = N'{hashSafe}')
      
     -- 2. TÌM KIẾM TƯƠNG ĐỐI (LIKE) TRÊN CÁC CỘT MÃ RÕ

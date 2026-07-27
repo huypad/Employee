@@ -263,12 +263,14 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
+                I_MaNV = model.I_MaNV,
                 I_Holot = model.I_Holot,
                 I_Ten = model.I_Ten,
                 I_CMND = model.I_CMND,
                 I_Sotaikhoan = model.I_Sotaikhoan,
                 Holot_Enc = EncryptAes(model.I_Holot),
                 Ten_Enc = EncryptAes(model.I_Ten),
+                MaNV_Enc = EncryptAes(model.I_MaNV),
                 CMND_Enc = EncryptRsa(model.I_CMND),
                 CMND_FPE = EncryptFpeDigits(model.I_CMND),
                 Sotaikhoan_Enc = model.Sotaikhoan_Enc,
@@ -359,6 +361,7 @@ namespace JeeBeginner.Services.Encryption
             return new NhanVienCryptoModel
             {
                 Id = model.Id,
+                I_MaNV = HashSearchIndex(model.I_MaNV),
                 I_Holot = HashSearchIndex(model.I_Holot),
                 I_Ten = HashSearchIndex(model.I_Ten),
                 I_CMND = HashSearchIndex(model.I_CMND),

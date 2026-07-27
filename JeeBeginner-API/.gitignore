@@ -2,6 +2,7 @@
 /obj
 /.config
 .env
+.codex-*
 Logs/*.csv
 !Logs/.gitkeep
 LoadTestResults/*.json
