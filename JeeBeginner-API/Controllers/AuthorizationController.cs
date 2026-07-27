@@ -33,6 +33,9 @@ namespace JeeBeginner.Controllers
         {
             try
             {
+                if (model == null)
+                    return BadRequest(new { message = "Thông tin đăng nhập là bắt buộc." });
+
                 var user = await _service.GetUser(model.Username, model.Password);
 
                 if (user == null)

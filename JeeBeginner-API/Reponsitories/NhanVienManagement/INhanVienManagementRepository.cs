@@ -7,7 +7,8 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 {
     public interface INhanVienManagementRepository
     {
-        Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr);
+        Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr, int page, int record);
+        Task<int> CountNhanVien(string whereStr);
         Task<NhanVienModel> GetNhanVienById(int id);
         Task<ReturnSqlModel> CreateNhanVien(NhanVienModel model);
         Task<ReturnSqlModel> UpdateNhanVien(NhanVienModel model);
@@ -15,6 +16,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
         Task<ReturnSqlModel> UpdateLock(int id);
         Task<ReturnSqlModel> UpdateUnLock(int id);
         Task<int> EncryptExistingNhanViens();
+        Task<int> RebuildSearchIndexes(int batchSize);
         Task<IEnumerable<NhanVienModel>> SearchAllEncrypted(string plainKeyword, string hashedKeyword);
     }
 }

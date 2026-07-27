@@ -41,6 +41,13 @@ namespace JeeBeginner.Controllers
             _encryptionService = encryptionService;
         }
 
+        private string ToSearchHashSqlLiteral(string value)
+        {
+            string hash = _encryptionService.HashSearchIndex(value);
+            if (string.IsNullOrWhiteSpace(hash)) return "NULL";
+            return "0x" + BitConverter.ToString(Encoding.UTF8.GetBytes(hash)).Replace("-", "");
+        }
+
         
 
         [HttpGet("Get_DSNhanVien")]
@@ -60,22 +67,51 @@ namespace JeeBeginner.Controllers
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
                     string k = keyword.Replace("'", "''");
-                    where += $@" AND (MaNV LIKE N'%{k}%' OR Holot LIKE N'%{k}%' OR Ten LIKE N'%{k}%' OR Mobile LIKE N'%{k}%' OR CMND LIKE N'%{k}%' OR Sotaikhoan LIKE N'%{k}%' OR Email LIKE N'%{k}%')";
+                    // The employee list search is intentionally flexible: a partial,
+                    // case-insensitive and accent-insensitive keyword is accepted.
+                    // Replace Đ/đ as well because it is a distinct Vietnamese letter.
+                    k = k.Replace("Đ", "D").Replace("đ", "d");
+                    string Match(string column) =>
+                        $"REPLACE(REPLACE(ISNULL({column}, N''), N'Đ', N'D'), N'đ', N'd') COLLATE Vietnamese_100_CI_AI LIKE N'%{k}%'";
+                    string fullName = "REPLACE(REPLACE(LTRIM(RTRIM(CONCAT(ISNULL(Holot, N''), N' ', ISNULL(Ten, N'')))), NCHAR(272), N'D'), NCHAR(273), N'd') COLLATE Vietnamese_100_CI_AI";
+                    string exactFullName = $"{fullName} = N'{k}'";
+                    string partialMatch = $"{Match("MaNV")} OR {Match("Holot")} OR {Match("Ten")} OR {Match("Mobile")} OR {Match("CMND")} OR {Match("Sotaikhoan")} OR {Match("Email")} OR {Match("PhongBan")} OR {Match("Tenchucvu")}";
+
+                    string exactHash = ToSearchHashSqlLiteral(keyword);
+                    string fullNameHash = "NULL";
+                    string[] nameParts = keyword.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (nameParts.Length > 1)
+                    {
+                        string hoLot = string.Join(" ", nameParts.Take(nameParts.Length - 1));
+                        string ten = nameParts[nameParts.Length - 1];
+                        fullNameHash = $"(I_Holot = {ToSearchHashSqlLiteral(hoLot)} AND I_Ten = {ToSearchHashSqlLiteral(ten)})";
+                    }
+
+                    // Index-only employee lookup: no LIKE scan across the table.
+                    where += $@" AND (I_MaNV = {exactHash} OR I_Holot = {exactHash} OR I_Ten = {exactHash} OR I_CMND = {exactHash} OR I_Sotaikhoan = {exactHash} OR {fullNameHash})";
                 }
                 if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
                 if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
 
-                IEnumerable<NhanVienModel> all = await _service.Get_DSNhanVien(where, "Id_NV DESC") ?? Enumerable.Empty<NhanVienModel>();
-                int total = all.Count();
+                int total = await _service.CountNhanVien(where);
                 PageModel page = new PageModel { TotalCount = total, AllPage = (int)Math.Ceiling(total / (decimal)query.record), Size = query.record, Page = query.page };
-                if (query.more) { query.page = 1; query.record = total; }
-                return Ok(JsonResultCommon.ThanhCong(all.Skip((query.page - 1) * query.record).Take(query.record), page));
+                IEnumerable<NhanVienModel> items = total == 0
+                    ? Enumerable.Empty<NhanVienModel>()
+                    : await _service.Get_DSNhanVien(where, "Id_NV DESC", query.page, query.record);
+                return Ok(JsonResultCommon.ThanhCong(items, page));
             }
             catch (Exception ex) { return BadRequest(JsonResultCommon.Exception(ex)); }
         }
 
         [HttpGet("GetNhanVienById")]
         public async Task<object> GetNhanVienById(int id) { try { NhanVienModel data = await _service.GetNhanVienById(id); return data is null ? JsonResultCommon.KhongTonTai(id.ToString()) : JsonResultCommon.ThanhCong(data); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+
+        [HttpPost("RebuildSearchIndexes")]
+        public async Task<object> RebuildSearchIndexes([FromQuery] int batchSize = 1000)
+        {
+            try { return JsonResultCommon.ThanhCong(await _service.RebuildSearchIndexes(batchSize)); }
+            catch (Exception ex) { return JsonResultCommon.Exception(ex); }
+        }
 
         [HttpPost("CreateNhanVien")]
         public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) { try { string validationError = ValidateNhanVien(model, false); if (validationError != null) return JsonResultCommon.Custom(validationError); ReturnSqlModel result = await _service.CreateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }

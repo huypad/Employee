@@ -18,12 +18,14 @@ namespace JeeBeginner.Models.Encryption
     public class NhanVienCryptoModel
     {
         public int Id { get; set; }
+        public string I_MaNV { get; set; }
         public string I_Holot { get; set; }
         public string I_Ten { get; set; }
         public string I_CMND { get; set; }
         public string I_Sotaikhoan { get; set; }
         public string Holot_Enc { get; set; }
         public string Ten_Enc { get; set; }
+        public string MaNV_Enc { get; set; }
         public string CMND_Enc { get; set; }
         public string CMND_FPE { get; set; }
         public string Sotaikhoan_Enc { get; set; }
