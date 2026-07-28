@@ -7,7 +7,9 @@ namespace JeeBeginner
     {
         public static void Main(string[] args)
         {
-            DotNetEnv.Env.Load();   
+            // IIS Express may start from bin\Debug instead of the project folder.
+            // Traverse upward so the .env beside the project can still be found.
+            DotNetEnv.Env.TraversePath().Load();
 
             CreateHostBuilder(args).Build().Run();
         }

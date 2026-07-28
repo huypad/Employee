@@ -20,6 +20,10 @@ namespace JeeBeginner.Reponsitories.Authorization
         public AuthorizationRepository(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(_connectionString))
+            {
+                _connectionString = DotNetEnv.Env.GetString("ConnectionStrings__DefaultConnection", string.Empty);
+            }
         }
         public async Task<User> GetUser(string Username, string Password)
         {
@@ -33,7 +37,13 @@ namespace JeeBeginner.Reponsitories.Authorization
                             and Password = '{Password}'";
             using (DpsConnection cnn = new DpsConnection(_connectionString))
             {
-                dt = await cnn.CreateDataTableAsync(sql, Conds);
+                // The SQL already contains its complete WHERE clause. Passing Conds
+                // without a `(where)` placeholder makes DpsConnection return null.
+                dt = await cnn.CreateDataTableAsync(sql);
+                if (dt == null)
+                {
+                    throw new InvalidOperationException("Không thể đọc bảng AccountList từ cơ sở dữ liệu đang kết nối.");
+                }
                 List<long> Rules = GetRules(Username);
                 string list_rules = "";
                 if (Rules.Count() > 0)
@@ -53,7 +63,8 @@ namespace JeeBeginner.Reponsitories.Authorization
                     IsMasterAccount = Convert.ToBoolean((bool)row["IsMasterAccount"]),
                     IsLock = (bool)row["IsLock"],
                 }).SingleOrDefault();
-                bool check = (bool)cnn.ExecuteScalar($"select IsLock from PartnerList where RowID = {dt.Rows[0]["PartnerID"]}");
+                object partnerLock = cnn.ExecuteScalar($"select IsLock from PartnerList where RowID = {dt.Rows[0]["PartnerID"]}");
+                bool check = partnerLock != null && partnerLock != DBNull.Value && Convert.ToBoolean(partnerLock);
                 if (check)
                 {
                     reuslt.Id = -1;
@@ -108,12 +119,16 @@ namespace JeeBeginner.Reponsitories.Authorization
             {
                 Tb = Conn.CreateDataTable("select * from Tbl_Account_Permit where (where)", "(where)", Conds);
                 DataTable quyennhom = Conn.CreateDataTable("select Id_permit from tbl_group_permit gp inner join tbl_group_account gu on gp.id_group=gu.id_group where (where)", "(where)", Conds);
+                // A user can legitimately have no direct permission rows.
+                // Returning null makes GetUser crash at Rules.Count().
                 if (Tb == null)
-                    return null;
+                    return slist;
                 foreach (DataRow r in Tb.Rows)
                 {
                     slist.Add(long.Parse(r["Id_permit"].ToString()));
                 }
+                if (quyennhom == null)
+                    return slist;
                 foreach (DataRow r in quyennhom.Rows)
                 {
                     slist.Add(long.Parse(r["Id_permit"].ToString()));

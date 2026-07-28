@@ -5,6 +5,12 @@ IF COL_LENGTH('dbo.Tbl_Nhanvien', 'Holot_Enc') IS NULL
 IF COL_LENGTH('dbo.Tbl_Nhanvien', 'Ten_Enc') IS NULL
     ALTER TABLE dbo.Tbl_Nhanvien ADD Ten_Enc NVARCHAR(MAX) NULL;
 
+IF COL_LENGTH('dbo.Tbl_Nhanvien', 'MaNV_Enc') IS NULL
+    ALTER TABLE dbo.Tbl_Nhanvien ADD MaNV_Enc NVARCHAR(MAX) NULL;
+
+IF COL_LENGTH('dbo.Tbl_Nhanvien', 'I_MaNV') IS NULL
+    ALTER TABLE dbo.Tbl_Nhanvien ADD I_MaNV VARBINARY(128) NULL;
+
 IF COL_LENGTH('dbo.Tbl_Nhanvien', 'CMND_Enc') IS NULL
     ALTER TABLE dbo.Tbl_Nhanvien ADD CMND_Enc NVARCHAR(MAX) NULL;
 

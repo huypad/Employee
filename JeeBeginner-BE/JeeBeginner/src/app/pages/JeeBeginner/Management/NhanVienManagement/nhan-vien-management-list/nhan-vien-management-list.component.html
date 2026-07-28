@@ -28,6 +28,21 @@
     <div class="card-toolbar">
       <button
         mat-raised-button
+        style="background-color: #fff3cd; color: #856404; border: 1px solid #ffc107;"
+        (click)="rebuildIndex()"
+        [disabled]="isIndexing"
+        title="Mã hóa và đánh lại search index cho toàn bộ nhân viên"
+      >
+        <span *ngIf="!isIndexing">⚙️ Rebuild Index</span>
+        <span *ngIf="isIndexing">⏳ Đang xử lý...</span>
+      </button>
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="card-toolbar">
+      <button
+        mat-raised-button
         class="ja_btn-addnew"
         (click)="create()"
       >

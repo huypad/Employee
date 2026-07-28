@@ -17,7 +17,8 @@ namespace JeeBeginner.Services.NhanVienManagement
             _repository = repository;
             _encryptionService = encryptionService;
         }
-        public Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr) => _repository.Get_DSNhanVien(whereStr, orderByStr);
+        public Task<IEnumerable<NhanVienModel>> Get_DSNhanVien(string whereStr, string orderByStr, int page, int record) => _repository.Get_DSNhanVien(whereStr, orderByStr, page, record);
+        public Task<int> CountNhanVien(string whereStr) => _repository.CountNhanVien(whereStr);
         public Task<NhanVienModel> GetNhanVienById(int id) => _repository.GetNhanVienById(id);
         public Task<ReturnSqlModel> CreateNhanVien(NhanVienModel model) => _repository.CreateNhanVien(model);
         public Task<ReturnSqlModel> UpdateNhanVien(NhanVienModel model) => _repository.UpdateNhanVien(model);
@@ -25,6 +26,7 @@ namespace JeeBeginner.Services.NhanVienManagement
         public Task<ReturnSqlModel> UpdateLock(int id) => _repository.UpdateLock(id);
         public Task<ReturnSqlModel> UpdateUnLock(int id) => _repository.UpdateUnLock(id);
         public Task<int> EncryptExistingNhanViens() => _repository.EncryptExistingNhanViens();
+        public Task<int> RebuildSearchIndexes(int batchSize) => _repository.RebuildSearchIndexes(batchSize);
 
         
         public async Task<IEnumerable<NhanVienModel>> SearchNhanVien(string keyword)
