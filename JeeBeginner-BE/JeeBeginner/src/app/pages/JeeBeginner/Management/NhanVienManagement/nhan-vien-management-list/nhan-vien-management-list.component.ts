@@ -37,6 +37,7 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
   sorting!: SortState;
   grouping!: GroupingState;
   isLoading = false;
+  isIndexing = false;
 
   private subscriptions: Subscription[] = [];
 
@@ -324,6 +325,66 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
         this.layoutUtilsService.showActionNotification('Import nhân viên thành công', MessageType.Create, 4000, true, false);
         this.nhanVienManagementService.fetch();
       }
+    });
+  }
+
+  rebuildIndex(): void {
+    const dialog = this.layoutUtilsService.deleteElement(
+      'Xác nhận đánh lại index',
+      'Thao tác này sẽ mã hóa lại toàn bộ nhân viên chưa có index và đánh lại search hash. Tiếp tục?'
+    );
+
+    dialog.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      this.isIndexing = true;
+      this.changeDetect.detectChanges();
+
+      // Bước 1: mã hóa các bản ghi chưa có
+      this.nhanVienManagementService.encryptExistingNhanViens().subscribe(
+        (encRes) => {
+          const encCount: number = encRes?.data?.updated ?? 0;
+
+          // Bước 2: đánh lại search hash theo batch
+          this.nhanVienManagementService.rebuildSearchIndexes(1000).subscribe(
+            (idxRes) => {
+              const idxCount: number = typeof idxRes?.data === 'number' ? idxRes.data : 0;
+              this.isIndexing = false;
+              this.changeDetect.detectChanges();
+              this.layoutUtilsService.showActionNotification(
+                `Hoàn thành: mã hóa ${encCount} bản ghi, đánh index ${idxCount} bản ghi.`,
+                MessageType.Update,
+                6000,
+                true,
+                false
+              );
+              this.nhanVienManagementService.fetch();
+            },
+            (err) => {
+              this.isIndexing = false;
+              this.changeDetect.detectChanges();
+              this.layoutUtilsService.showActionNotification(
+                err?.error?.message || 'Đánh index thất bại',
+                MessageType.Read,
+                4000,
+                true,
+                false
+              );
+            }
+          );
+        },
+        (err) => {
+          this.isIndexing = false;
+          this.changeDetect.detectChanges();
+          this.layoutUtilsService.showActionNotification(
+            err?.error?.message || 'Mã hóa thất bại',
+            MessageType.Read,
+            4000,
+            true,
+            false
+          );
+        }
+      );
     });
   }
 
