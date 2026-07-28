@@ -73,12 +73,12 @@ namespace JeeBeginner.Controllers
                     k = k.Replace("Đ", "D").Replace("đ", "d");
                     string Match(string column) =>
                         $"REPLACE(REPLACE(ISNULL({column}, N''), N'Đ', N'D'), N'đ', N'd') COLLATE Vietnamese_100_CI_AI LIKE N'%{k}%'";
-                    string fullName = "REPLACE(REPLACE(LTRIM(RTRIM(CONCAT(ISNULL(Holot, N''), N' ', ISNULL(Ten, N'')))), NCHAR(272), N'D'), NCHAR(273), N'd') COLLATE Vietnamese_100_CI_AI";
-                    string exactFullName = $"{fullName} = N'{k}'";
-                    string partialMatch = $"{Match("MaNV")} OR {Match("Holot")} OR {Match("Ten")} OR {Match("Mobile")} OR {Match("CMND")} OR {Match("Sotaikhoan")} OR {Match("Email")} OR {Match("PhongBan")} OR {Match("Tenchucvu")}";
+
+                    // LIKE fallback cho các cột plaintext: MaNV, CMND (CCCD), Mobile (SDT), HoLot, Ten, HoTen
+                    string plainMatch = $"{Match("MaNV")} OR {Match("CMND")} OR {Match("Mobile")} OR {Match("Holot")} OR {Match("Ten")} OR {Match("CONCAT(ISNULL(Holot, N''), ' ', ISNULL(Ten, N''))")}";
 
                     string exactHash = ToSearchHashSqlLiteral(keyword);
-                    string fullNameHash = "NULL";
+                    string fullNameHash = "(1 = 0)";
                     string[] nameParts = keyword.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     if (nameParts.Length > 1)
                     {
@@ -87,8 +87,14 @@ namespace JeeBeginner.Controllers
                         fullNameHash = $"(I_Holot = {ToSearchHashSqlLiteral(hoLot)} AND I_Ten = {ToSearchHashSqlLiteral(ten)})";
                     }
 
-                    // Index-only employee lookup: no LIKE scan across the table.
-                    where += $@" AND (I_MaNV = {exactHash} OR I_Holot = {exactHash} OR I_Ten = {exactHash} OR I_CMND = {exactHash} OR I_Sotaikhoan = {exactHash} OR {fullNameHash})";
+                    // Tìm theo hash index (tên, CCCD exact, MaNV exact, STK exact)
+                    // OR tìm theo LIKE trên MaNV / CCCD / SDT / Họ tên (partial)
+                    where += $@" AND (
+                        I_MaNV = {exactHash} OR I_Holot = {exactHash} OR I_Ten = {exactHash}
+                        OR I_CMND = {exactHash} OR I_Sotaikhoan = {exactHash}
+                        OR {fullNameHash}
+                        OR {plainMatch}
+                    )";
                 }
                 if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
                 if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";

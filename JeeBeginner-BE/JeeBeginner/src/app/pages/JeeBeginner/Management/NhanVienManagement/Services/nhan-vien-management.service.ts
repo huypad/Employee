@@ -99,4 +99,16 @@ export class NhanVienManagementService
     const url = API_PRODUCTS_URL + `/UpdateUnLock/${id}`;
     return this.http.get<any>(url, { headers: httpHeaders });
   }
+
+  rebuildSearchIndexes(batchSize: number = 1000): Observable<any> {
+    const httpHeaders = this.httpUtils.getHTTPHeaders();
+    const url = API_PRODUCTS_URL + `/RebuildSearchIndexes?batchSize=${batchSize}`;
+    return this.http.post<any>(url, null, { headers: httpHeaders });
+  }
+
+  encryptExistingNhanViens(): Observable<any> {
+    const httpHeaders = this.httpUtils.getHTTPHeaders();
+    const url = API_PRODUCTS_URL + '/EncryptExistingNhanViens';
+    return this.http.post<any>(url, null, { headers: httpHeaders });
+  }
 }
