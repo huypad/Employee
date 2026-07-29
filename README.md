@@ -138,25 +138,57 @@ k6 run --env LOAD_LEVEL=<so_VU> --env ALGO=<thuật_toán> --out json=../LoadTes
 
 Chạy đủ 5 thuật toán × 3 mức tải (50/100/200) = 15 lệnh:
 ```powershell
-k6 run --env LOAD_LEVEL=50  --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_50vu.json  test.js
-k6 run --env LOAD_LEVEL=100 --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_100vu.json test.js
-k6 run --env LOAD_LEVEL=200 --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_200vu.json test.js
+# k6 run --env LOAD_LEVEL=50  --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_50vu.json  test.js
+# k6 run --env LOAD_LEVEL=100 --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_100vu.json test.js
+# k6 run --env LOAD_LEVEL=200 --env ALGO=plaintext --out json=../LoadTestResults/results_plaintext_200vu.json test.js
 
-k6 run --env LOAD_LEVEL=50  --env ALGO=aes --out json=../LoadTestResults/results_aes_50vu.json  test.js
-k6 run --env LOAD_LEVEL=100 --env ALGO=aes --out json=../LoadTestResults/results_aes_100vu.json test.js
-k6 run --env LOAD_LEVEL=200 --env ALGO=aes --out json=../LoadTestResults/results_aes_200vu.json test.js
+# k6 run --env LOAD_LEVEL=50  --env ALGO=aes --out json=../LoadTestResults/results_aes_50vu.json  test.js
+# k6 run --env LOAD_LEVEL=100 --env ALGO=aes --out json=../LoadTestResults/results_aes_100vu.json test.js
+# k6 run --env LOAD_LEVEL=200 --env ALGO=aes --out json=../LoadTestResults/results_aes_200vu.json test.js
 
-k6 run --env LOAD_LEVEL=50  --env ALGO=rsa --out json=../LoadTestResults/results_rsa_50vu.json  test.js
-k6 run --env LOAD_LEVEL=100 --env ALGO=rsa --out json=../LoadTestResults/results_rsa_100vu.json test.js
-k6 run --env LOAD_LEVEL=200 --env ALGO=rsa --out json=../LoadTestResults/results_rsa_200vu.json test.js
+# k6 run --env LOAD_LEVEL=50  --env ALGO=rsa --out json=../LoadTestResults/results_rsa_50vu.json  test.js
+# k6 run --env LOAD_LEVEL=100 --env ALGO=rsa --out json=../LoadTestResults/results_rsa_100vu.json test.js
+# k6 run --env LOAD_LEVEL=200 --env ALGO=rsa --out json=../LoadTestResults/results_rsa_200vu.json test.js
 
-k6 run --env LOAD_LEVEL=50  --env ALGO=fpe --out json=../LoadTestResults/results_fpe_50vu.json  test.js
-k6 run --env LOAD_LEVEL=100 --env ALGO=fpe --out json=../LoadTestResults/results_fpe_100vu.json test.js
-k6 run --env LOAD_LEVEL=200 --env ALGO=fpe --out json=../LoadTestResults/results_fpe_200vu.json test.js
+# k6 run --env LOAD_LEVEL=50  --env ALGO=fpe --out json=../LoadTestResults/results_fpe_50vu.json  test.js
+# k6 run --env LOAD_LEVEL=100 --env ALGO=fpe --out json=../LoadTestResults/results_fpe_100vu.json test.js
+# k6 run --env LOAD_LEVEL=200 --env ALGO=fpe --out json=../LoadTestResults/results_fpe_200vu.json test.js
 
-k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=../LoadTestResults/results_hash_50vu.json  test.js
-k6 run --env LOAD_LEVEL=100 --env ALGO=hash --out json=../LoadTestResults/results_hash_100vu.json test.js
-k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=../LoadTestResults/results_hash_200vu.json test.js
+# k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=../LoadTestResults/results_hash_50vu.json  test.js
+# k6 run --env LOAD_LEVEL=100 --env ALGO=hash --out json=../LoadTestResults/results_hash_100vu.json test.js
+# k6 run --env LOAD_LEVEL=200 --env ALGO=hash --out json=../LoadTestResults/results_hash_200vu.json test.js
+.\run-k6.ps1 -Algo plaintext -Load 50
+.\run-k6.ps1 -Algo plaintext -Load 50
+.\run-k6.ps1 -Algo plaintext -Load 100
+.\run-k6.ps1 -Algo plaintext -Load 100
+.\run-k6.ps1 -Algo plaintext -Load 200
+.\run-k6.ps1 -Algo plaintext -Load 200
+
+.\run-k6.ps1 -Algo aes -Load 100
+.\run-k6.ps1 -Algo aes -Load 100
+.\run-k6.ps1 -Algo aes -Load 200
+.\run-k6.ps1 -Algo aes -Load 200
+
+.\run-k6.ps1 -Algo rsa -Load 50
+.\run-k6.ps1 -Algo rsa -Load 50
+.\run-k6.ps1 -Algo rsa -Load 100
+.\run-k6.ps1 -Algo rsa -Load 100
+.\run-k6.ps1 -Algo rsa -Load 200
+.\run-k6.ps1 -Algo rsa -Load 200
+
+.\run-k6.ps1 -Algo fpe -Load 50
+.\run-k6.ps1 -Algo fpe -Load 50
+.\run-k6.ps1 -Algo fpe -Load 100
+.\run-k6.ps1 -Algo fpe -Load 100
+.\run-k6.ps1 -Algo fpe -Load 200
+.\run-k6.ps1 -Algo fpe -Load 200
+
+.\run-k6.ps1 -Algo hash -Load 50
+.\run-k6.ps1 -Algo hash -Load 50
+.\run-k6.ps1 -Algo hash -Load 100
+.\run-k6.ps1 -Algo hash -Load 100
+.\run-k6.ps1 -Algo hash -Load 200
+.\run-k6.ps1 -Algo hash -Load 200
 ```
 
 ### Tổng hợp kết quả:
