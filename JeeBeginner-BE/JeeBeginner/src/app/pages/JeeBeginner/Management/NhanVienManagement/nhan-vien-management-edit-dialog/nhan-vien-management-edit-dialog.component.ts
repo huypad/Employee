@@ -27,7 +27,9 @@ export class NhanVienManagementEditDialogComponent implements OnInit {
       CCCD: ['', [Validators.required, Validators.pattern(/^(\d{9}|\d{12})$/)]],
       Email: ['', [Validators.email, Validators.maxLength(100)]],
       DiaChi: ['', Validators.maxLength(255)],
-      PhongBan: ['', Validators.pattern(/^[1-9]\d*$/)],
+      // Phòng ban là tên hiển thị, ví dụ: "Phòng Kỹ thuật".
+      // Không dùng mã số nội bộ làm giá trị người dùng phải nhập.
+      PhongBan: ['', [Validators.maxLength(100), Validators.pattern(/.*[A-Za-zÀ-ỹ].*/)]],
       ChucVu: ['', Validators.maxLength(100)],
     });
 
@@ -91,7 +93,7 @@ export class NhanVienManagementEditDialogComponent implements OnInit {
         MaNV: 'Mã NV phải có dạng NV + chữ số, ví dụ NV105.',
         SDT: 'Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.',
         CCCD: 'CCCD gồm 12 số hoặc CMND cũ gồm 9 số.',
-        PhongBan: 'Phòng ban phải là mã số dương.',
+        PhongBan: 'Phòng ban phải có ít nhất một chữ cái.',
       };
       return messages[controlName] || 'Dữ liệu không đúng định dạng.';
     }

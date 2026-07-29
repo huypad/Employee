@@ -63,7 +63,10 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
     private layoutUtilsService: LayoutUtilsService,
     public dialog: MatDialog,
     private auth: AuthService
-  ) {}
+  ) {
+    // Thiết lập trước khi component tìm kiếm con được tạo để placeholder hiển thị đúng.
+    this.configShowSearch();
+  }
 
   ngOnInit(): void {
     this.nhanVienManagementService.fetch();
@@ -78,7 +81,6 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(sb);
-    this.configShowSearch();
   }
 
   ngOnDestroy(): void {
@@ -305,12 +307,13 @@ export class NhanVienManagementListComponent implements OnInit, OnDestroy {
   }
 
   configShowSearch(): void {
-    this.showSearch.dakhoa = true;
+    // Nhân viên chỉ tìm theo tên ở ô chính; không hiển thị menu "Từ khoá" cũ.
+    this.showSearch.dakhoa = false;
     this.showSearch.isAdmin = false;
     this.showSearch.username = false;
-    this.showSearch.titlekeyword = 'Tìm kiếm nhân viên';
+    this.showSearch.showAdvanced = false;
+    this.showSearch.titlekeyword = 'Tìm theo tên nhân viên';
 
-    this.changeDetect.detectChanges();
   }
 
   import(): void {
