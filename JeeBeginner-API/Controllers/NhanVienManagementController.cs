@@ -64,19 +64,18 @@ namespace JeeBeginner.Controllers
                 string daKhoa = query.filter["dakhoa"];
                 string dangSuDung = query.filter["dangsudung"];
 
+                if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
+                if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
+
+                int total = 0;
+                string activeWhere = where;
+
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
                     string k = keyword.Replace("'", "''");
-                    // The employee list search is intentionally flexible: a partial,
-                    // case-insensitive and accent-insensitive keyword is accepted.
-                    // Replace Đ/đ as well because it is a distinct Vietnamese letter.
+                   
                     k = k.Replace("Đ", "D").Replace("đ", "d");
-                    string Match(string column) =>
-                        $"REPLACE(REPLACE(ISNULL({column}, N''), N'Đ', N'D'), N'đ', N'd') COLLATE Vietnamese_100_CI_AI LIKE N'%{k}%'";
-
-                    // LIKE fallback cho các cột plaintext: MaNV, CMND (CCCD), Mobile (SDT), HoLot, Ten, HoTen
-                    string plainMatch = $"{Match("MaNV")} OR {Match("CMND")} OR {Match("Mobile")} OR {Match("Holot")} OR {Match("Ten")} OR {Match("CONCAT(ISNULL(Holot, N''), ' ', ISNULL(Ten, N''))")}";
-
+                    
                     string exactHash = ToSearchHashSqlLiteral(keyword);
                     string fullNameHash = "(1 = 0)";
                     string[] nameParts = keyword.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -84,26 +83,73 @@ namespace JeeBeginner.Controllers
                     {
                         string hoLot = string.Join(" ", nameParts.Take(nameParts.Length - 1));
                         string ten = nameParts[nameParts.Length - 1];
-                        fullNameHash = $"(I_Holot = {ToSearchHashSqlLiteral(hoLot)} AND I_Ten = {ToSearchHashSqlLiteral(ten)})";
+                        string hashHoLot = ToSearchHashSqlLiteral(hoLot);
+                        string hashTen = ToSearchHashSqlLiteral(ten);
+                        string hoLotLike = hoLot.Replace("'", "''");
+                        // Khớp chính xác trọn bộ (I_Holot = ... AND I_Ten = ...) cho người gõ đủ 
+                        // hoặc Index Seek theo Tên (I_Ten = '') kèm lọc phần lót cho người gõ thiếu họ
+                        fullNameHash = $@"((I_Holot = {hashHoLot} AND I_Ten = {hashTen}) OR (I_Ten = {hashTen} AND Holot LIKE N'%{hoLotLike}%'))";
                     }
 
-                    // Tìm theo hash index (tên, CCCD exact, MaNV exact, STK exact)
-                    // OR tìm theo LIKE trên MaNV / CCCD / SDT / Họ tên (partial)
-                    where += $@" AND (
-                        I_MaNV = {exactHash} OR I_Holot = {exactHash} OR I_Ten = {exactHash}
-                        OR I_CMND = {exactHash} OR I_Sotaikhoan = {exactHash}
-                        OR {fullNameHash}
-                        OR {plainMatch}
-                    )";
-                }
-                if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
-                if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
+                    //Phân loại từ khóa để ép SQL Server dùng đúng Index Seek
+                    string whereHash;
+                    string kwTrim = keyword.Trim();
+                    bool isDigitsOnly = System.Text.RegularExpressions.Regex.IsMatch(kwTrim, @"^\d+$");
+                    bool isMaNV = System.Text.RegularExpressions.Regex.IsMatch(kwTrim, @"^NV\d+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-                int total = await _service.CountNhanVien(where);
+                    if (isDigitsOnly)
+                    {
+                        //    Nếu 9 hoặc 12 số -> CCCD đầy đủ (Hash Index Seek tuyệt đối)
+                        //    Nếu gõ vài số đầu (Ví dụ "033" hoặc "033701") -> Prefix Range Index Seek trên CMND 
+                        //    Trường hợp khác -> Hash Index Seek Sotaikhoan
+                        if (kwTrim.Length == 9 || kwTrim.Length == 12)
+                            whereHash = where + $@" AND I_CMND = {exactHash}";
+                        else if (kwTrim.Length < 9)
+                        {
+                            string prefix = kwTrim.Replace("'", "''");
+                            whereHash = where + $@" AND (CMND LIKE N'{prefix}%' OR Mobile LIKE N'{prefix}%')";
+                        }
+                        else
+                            whereHash = where + $@" AND I_Sotaikhoan = {exactHash}";
+                    }
+                    else if (isMaNV)
+                    {
+                        // Mã NV -> Exact Hash HOẶC Prefix Index Seek (MaNV LIKE 'NV10%')
+                        string prefix = kwTrim.Replace("'", "''");
+                        whereHash = where + $@" AND (I_MaNV = {exactHash} OR MaNV LIKE N'{prefix}%')";
+                    }
+                    else
+                    {
+                        // Tên / Họ tên -> Exact Hash HOẶC Prefix Index Seek (Ten/Holot LIKE 'Nguy%')
+                        string prefix = kwTrim.Replace("'", "''");
+                        if (nameParts.Length > 1)
+                            whereHash = where + $@" AND ({fullNameHash} OR Holot LIKE N'{prefix}%' OR Ten LIKE N'{prefix}%')";
+                        else
+                            whereHash = where + $@" AND (I_Ten = {exactHash} OR Ten LIKE N'{prefix}%' OR Holot LIKE N'{prefix}%')";
+                    }
+
+                    total = await _service.CountNhanVien(whereHash);
+                    activeWhere = whereHash;
+
+                    
+                    // if (total == 0)
+                    // {
+                    //     string whereLike = where + $@" AND (
+                    //         {plainMatch}
+                    //     )";
+                    //     total = await _service.CountNhanVien(whereLike);
+                    //     activeWhere = whereLike;
+                    // }
+                }
+                else
+                {
+                    total = await _service.CountNhanVien(where);
+                }
+
                 PageModel page = new PageModel { TotalCount = total, AllPage = (int)Math.Ceiling(total / (decimal)query.record), Size = query.record, Page = query.page };
                 IEnumerable<NhanVienModel> items = total == 0
                     ? Enumerable.Empty<NhanVienModel>()
-                    : await _service.Get_DSNhanVien(where, "Id_NV DESC", query.page, query.record);
+                    : await _service.Get_DSNhanVien(activeWhere, "Id_NV DESC", query.page, query.record);
                 return Ok(JsonResultCommon.ThanhCong(items, page));
             }
             catch (Exception ex) { return BadRequest(JsonResultCommon.Exception(ex)); }
