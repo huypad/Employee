@@ -64,8 +64,12 @@ namespace JeeBeginner.Controllers
                 string daKhoa = query.filter["dakhoa"];
                 string dangSuDung = query.filter["dangsudung"];
 
-                if (!string.IsNullOrWhiteSpace(daKhoa)) where += " AND Status = 0";
-                if (!string.IsNullOrWhiteSpace(dangSuDung)) where += " AND Status = 1";
+                // Dữ liệu cũ có thể chưa có Status. Khi đó trạng thái thực tế
+                // được suy ra từ Disable, giống hệt cột Status trả về ở repository.
+                const string employeeStatusSql =
+                    "ISNULL(CONVERT(INT, Status), CASE WHEN ISNULL(Disable, 0) = 1 THEN 0 ELSE 1 END)";
+                if (!string.IsNullOrWhiteSpace(daKhoa)) where += $" AND {employeeStatusSql} = 0";
+                if (!string.IsNullOrWhiteSpace(dangSuDung)) where += $" AND {employeeStatusSql} = 1";
 
                 int total = 0;
                 string activeWhere = where;
@@ -344,7 +348,8 @@ namespace JeeBeginner.Controllers
             if (!string.IsNullOrWhiteSpace(model.SDT) && !Regex.IsMatch(model.SDT, "^0\\d{9}$")) return "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0";
             if (!string.IsNullOrWhiteSpace(model.Email) && (!Regex.IsMatch(model.Email, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$") || model.Email.Length > 100)) return "Email không đúng định dạng";
             if (model.DiaChi?.Length > 255) return "Địa chỉ không được quá 255 ký tự";
-            if (!string.IsNullOrWhiteSpace(model.PhongBan) && (!decimal.TryParse(model.PhongBan, out decimal departmentId) || departmentId <= 0)) return "Phòng ban phải là mã số dương";
+            if (model.PhongBan?.Length > 100) return "Phòng ban không được quá 100 ký tự";
+            if (!string.IsNullOrWhiteSpace(model.PhongBan) && !Regex.IsMatch(model.PhongBan, @"\p{L}")) return "Phòng ban phải có ít nhất một chữ cái";
             if (model.ChucVu?.Length > 100) return "Chức vụ không được quá 100 ký tự";
 
             return null;

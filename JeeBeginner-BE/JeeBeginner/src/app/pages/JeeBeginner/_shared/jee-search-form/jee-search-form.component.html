@@ -6,11 +6,11 @@
     <button mat-icon-button>
       <mat-icon (click)="clearFilter()">close</mat-icon>
     </button>
-    <button mat-icon-button>
+    <button mat-icon-button *ngIf="showSearch.showAdvanced">
       <mat-icon (click)="clickShowFilter(this.showFilter)">arrow_drop_down</mat-icon>
     </button>
   </div>
-  <div style="padding-left: 0.69rem; padding-right: 0.69rem" class="filter" *ngIf="showFilter == true">
+  <div style="padding-left: 0.69rem; padding-right: 0.69rem" class="filter" *ngIf="showSearch.showAdvanced && showFilter == true">
     <form action="#" class="form form-label-right" [formGroup]="filterGroup">
       <div class="row">
         <div class="col-lg-4">
