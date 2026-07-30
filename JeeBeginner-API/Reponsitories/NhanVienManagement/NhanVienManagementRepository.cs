@@ -126,13 +126,13 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
 (Id_NV,MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,DiaChi,PhongBan,Tenchucvu,
  LastModified,Status,Disable,DateCreated,
  MaNV_Enc,Holot_Enc,Ten_Enc,CMND_Enc,CMND_FPE,CMNDHash,
- I_MaNV,I_Holot,I_Ten,I_CMND,I_Sotaikhoan)
+ I_MaNV,I_Holot,I_Ten,I_CMND,I_Sotaikhoan,I_Mobile)
 VALUES(
  {id},{S(m.MaNV)},{S(hoLot)},{S(ten)},{S(m.SDT)},{S(m.CCCD)},{SN(m.SoTaiKhoan)},{SN(m.Email)},
  {SN(m.DiaChi)},{SN(m.PhongBan)},{SN(m.ChucVu)},
  {now},1,0,{now},
  {S(enc.MaNV_Enc)},{S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},
- {Hex(m.MaNV)},{Hex(hoLot)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)})";
+ {Hex(m.MaNV)},{Hex(hoLot)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)},{Hex(m.SDT)})";
         }
 
         private string RawUpdateSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
@@ -144,7 +144,7 @@ VALUES(
  PhongBan={SN(m.PhongBan)},Tenchucvu={SN(m.ChucVu)},LastModified={now},
  MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
  CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
- I_MaNV={Hex(m.MaNV)},I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)}
+ I_MaNV={Hex(m.MaNV)},I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)},I_Mobile={Hex(m.SDT)}
 WHERE Id_NV={id}";
         }
 
@@ -173,11 +173,11 @@ WHERE Id_NV={id}";
         public async Task<int> EncryptExistingNhanViens()
         {
             using DpsConnection cnn = new DpsConnection(_connectionString);
-            DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan
+            DataTable rows = await cnn.CreateDataTableAsync(@"SELECT Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan, Mobile
         FROM dbo.Tbl_Nhanvien
         WHERE MaNV_Enc IS NULL OR I_MaNV IS NULL OR Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL
             OR CMND_Enc NOT LIKE 'RSAHYBRID:%'
-            OR I_Holot IS NULL OR I_Ten IS NULL OR I_CMND IS NULL OR I_Sotaikhoan IS NULL");
+            OR I_Holot IS NULL OR I_Ten IS NULL OR I_CMND IS NULL OR I_Sotaikhoan IS NULL OR I_Mobile IS NULL");
 
             int updated = 0;
 
@@ -188,13 +188,14 @@ WHERE Id_NV={id}";
                 string ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]);
                 string cmnd = row["CMND"] == DBNull.Value ? null : Convert.ToString(row["CMND"]);
                 string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
+                string mobile = row["Mobile"] == DBNull.Value ? null : Convert.ToString(row["Mobile"]);
                 int id = Convert.ToInt32(row["Id_NV"]);
 
                 NhanVienCryptoModel enc = Encrypt(maNV, holot, ten, cmnd, sotaikhoan);
                 string sql = $@"UPDATE dbo.{TableName} SET
                     MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
                     CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
-                    I_MaNV={Hex(maNV)},I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},
+                    I_MaNV={Hex(maNV)},I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},I_Mobile={Hex(mobile)},
                     LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}'
                 WHERE Id_NV={id}";
                 cnn.ExecuteNonQuery(sql);
@@ -208,7 +209,7 @@ WHERE Id_NV={id}";
         {
             batchSize = Math.Clamp(batchSize, 1, 5000);
             using DpsConnection cnn = new DpsConnection(_connectionString);
-            DataTable rows = await cnn.CreateDataTableAsync($@"SELECT TOP {batchSize} Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan
+            DataTable rows = await cnn.CreateDataTableAsync($@"SELECT TOP {batchSize} Id_NV, MaNV, Holot, Ten, CMND, Sotaikhoan, Mobile
                 FROM dbo.Tbl_Nhanvien
                 -- I_MaNV is the progress marker shown to the administrator.
                 -- Only take rows that still lack this marker so each completed batch
@@ -225,8 +226,9 @@ WHERE Id_NV={id}";
                 string ten = row["Ten"] == DBNull.Value ? null : Convert.ToString(row["Ten"]);
                 string cmnd = row["CMND"] == DBNull.Value ? null : Convert.ToString(row["CMND"]);
                 string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
+                string mobile = row["Mobile"] == DBNull.Value ? null : Convert.ToString(row["Mobile"]);
                 cnn.ExecuteNonQuery($@"UPDATE dbo.{TableName} SET
-                    I_MaNV={Hex(maNV)}, I_Holot={Hex(holot)}, I_Ten={Hex(ten)}, I_CMND={Hex(cmnd)}, I_Sotaikhoan={Hex(sotaikhoan)},
+                    I_MaNV={Hex(maNV)}, I_Holot={Hex(holot)}, I_Ten={Hex(ten)}, I_CMND={Hex(cmnd)}, I_Sotaikhoan={Hex(sotaikhoan)}, I_Mobile={Hex(mobile)},
                     LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}' WHERE Id_NV={id}");
                 updated++;
             }
@@ -282,31 +284,20 @@ WHERE Id_NV={id}";
         private static object ParseNullableDecimal(string value) => decimal.TryParse(value, out decimal result) ? (object)result : DBNull.Value;
         public async Task<IEnumerable<NhanVienModel>> SearchAllEncrypted(string plainKeyword, string hashedKeyword)
         {
-            string plainSafe = (plainKeyword ?? string.Empty).Replace("'", "''");
             string hashSafe = (hashedKeyword ?? string.Empty).Replace("'", "''");
 
-          
             byte[] hashBytes = string.IsNullOrEmpty(hashSafe) ? new byte[0] : Encoding.UTF8.GetBytes(hashSafe);
             string hexHash = hashBytes.Length > 0 ? "0x" + BitConverter.ToString(hashBytes).Replace("-", "") : "NULL";
 
             string query = $@"{SelectColumns} 
 WHERE 
-    -- 1. TÌM KIẾM TRÊN CÁC CỘT MÃ HÓA (Đã tối ưu mã Hexa, Database sẽ ăn Index rất sâu)
-    (I_MaNV = {hexHash}
-     OR I_Holot = {hexHash}
-     OR I_Ten = {hexHash}
-     OR I_CMND = {hexHash}
-     OR I_Sotaikhoan = {hexHash}
-     -- Hai cột này DB đang lưu kiểu NVARCHAR, vẫn dùng chuỗi bình thường
-     OR CMNDHash = N'{hashSafe}')
-     
-    -- 2. TÌM KIẾM TƯƠNG ĐỐI (LIKE) TRÊN CÁC CỘT MÃ RÕ
-    OR (MaNV LIKE N'%{plainSafe}%' 
-        OR Holot LIKE N'%{plainSafe}%' 
-        OR Ten LIKE N'%{plainSafe}%' 
-        OR CMND LIKE N'%{plainSafe}%' 
-        OR Mobile LIKE N'%{plainSafe}%' 
-        OR Email LIKE N'%{plainSafe}%')
+    -- 100% TÌM KIẾM TUYỆT ĐỐI TRÊN CÁC CỘT CHỈ MỤC (VARBINARY(32) - INDEX SEEK)
+    I_MaNV = {hexHash}
+    OR I_Holot = {hexHash}
+    OR I_Ten = {hexHash}
+    OR I_CMND = {hexHash}
+    OR I_Sotaikhoan = {hexHash}
+    OR I_Mobile = {hexHash}
 ORDER BY TRY_CONVERT(INT, REPLACE(MaNV, 'NV', '')), Id_NV DESC";
 
             using DpsConnection cnn = new DpsConnection(_connectionString);
