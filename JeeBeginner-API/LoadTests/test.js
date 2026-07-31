@@ -33,6 +33,7 @@ export const options = {
 
     // Ngưỡng riêng cho từng loại thao tác (đo từ CLIENT, round-trip) 
     // Dựa theo số liệu thực tế đã đo được trước đó cho từng thuật toán
+    'plaintext_duration_ms': ['p(95)<150'],
     'encrypt_duration_ms': ['p(95)<150'],
     'decrypt_duration_ms': ['p(95)<150'],
     'hash_duration_ms': ['p(95)<100'],
@@ -49,6 +50,7 @@ export const options = {
 const HOST = 'https://localhost:1404';
 
 // Custom metrics - đo từ phía CLIENT (round-trip, gồm cả network/serialize)
+const plaintextTrend = new Trend('plaintext_duration_ms');
 const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
 const hashTrend = new Trend('hash_duration_ms');
@@ -56,6 +58,7 @@ const hashIndexTrend = new Trend('hashindex_duration_ms');
 
 // Custom metrics - đo từ phía SERVER (Stopwatch bọc sát quanh đúng dòng gọi
 // thuật toán trong ProcessField(), KHÔNG tính network/serialize/overhead HTTP)
+const plaintextServerTrend = new Trend('plaintext_server_ms');
 const encryptServerTrend = new Trend('encrypt_server_ms');
 const decryptServerTrend = new Trend('decrypt_server_ms');
 const hashServerTrend = new Trend('hash_server_ms');
@@ -85,7 +88,39 @@ function getServerTimeMs(res) {
     return null;
   }
 }
-
+const WARMUP_CALLS = 30;
+ 
+export function setup() {
+  const params = commonParams();
+  for (let i = 0; i < WARMUP_CALLS; i++) {
+    const idx = i % testData.length;
+    const { fieldName, value } = testData[idx];
+ 
+    if (ALGO === 'plaintext') {
+      http.post(`${HOST}/api/encryptiontest/plaintext/field`, JSON.stringify({ fieldName, value }), params);
+      continue;
+    }
+    if (ALGO === 'hash') {
+      http.post(`${HOST}/api/encryptiontest/hmacsha256/field/hash`, JSON.stringify({ fieldName, value }), params);
+      continue;
+    }
+    if (ALGO === 'hashindex') {
+      http.post(`${HOST}/api/encryptiontest/hmacsha256/field/index`, JSON.stringify({ fieldName, value }), params);
+      continue;
+    }
+ 
+    // aes / rsa / fpe: warm-up cả encrypt lẫn decrypt
+    const encRes = http.post(`${HOST}/api/encryptiontest/${ALGO}/field/encrypt`, JSON.stringify({ fieldName, value }), params);
+    try {
+      const encryptedValue = JSON.parse(encRes.body).data.OutputValue;
+      http.post(`${HOST}/api/encryptiontest/${ALGO}/field/decrypt`, JSON.stringify({ fieldName, value: encryptedValue }), params);
+    } catch {
+      // encrypt lỗi lúc warm-up thì bỏ qua, không phải lúc đo thật nên không sao
+    }
+  }
+  // sleep nhỏ để chắc chắn warm-up và đo thật không lẫn vào cùng 1 nhịp
+  sleep(1);
+}
 export default function () {
   const { fieldName, value } = pickRecord();
   const params = commonParams();
@@ -95,6 +130,9 @@ export default function () {
     const url = `${HOST}/api/encryptiontest/plaintext/field`;
     const res = http.post(url, JSON.stringify({ fieldName, value }), params);
     check(res, { 'plaintext status 200': (r) => r.status === 200 });
+    plaintextTrend.add(res.timings.duration, { algorithm: 'plaintext', field: fieldName });
+    const serverMs = getServerTimeMs(res);
+    if (serverMs !== null) plaintextServerTrend.add(serverMs, { algorithm: 'plaintext', field: fieldName });
     sleep(1);
     return;
   }
