@@ -8,10 +8,9 @@ import { SharedArray } from 'k6/data';
 //   k6 run --env LOAD_LEVEL=100 --env ALGO=rsa  test.js
 //   k6 run --env LOAD_LEVEL=200 --env ALGO=fpe  test.js
 //   k6 run --env LOAD_LEVEL=50  --env ALGO=hash test.js
-//   k6 run --env LOAD_LEVEL=50  --env ALGO=hashindex test.js
 
 const LOAD_LEVEL = __ENV.LOAD_LEVEL || '50';
-const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe / hash / hashindex
+const ALGO = (__ENV.ALGO || 'aes').toLowerCase(); // plaintext / aes / rsa / fpe / hash 
 
 export const options = {
   scenarios: {
@@ -37,7 +36,6 @@ export const options = {
     'encrypt_duration_ms': ['p(95)<150'],
     'decrypt_duration_ms': ['p(95)<150'],
     'hash_duration_ms': ['p(95)<100'],
-    'hashindex_duration_ms': ['p(95)<100'],
 
     // Ngưỡng riêng cho thời gian THUẦN thuật toán (đo từ SERVER, bọc sát) 
     // Ngưỡng này rất chặt vì bản chất thuật toán chạy cực nhanh (dưới 1ms hầu hết trường hợp)
@@ -54,7 +52,6 @@ const plaintextTrend = new Trend('plaintext_duration_ms');
 const encryptTrend = new Trend('encrypt_duration_ms');
 const decryptTrend = new Trend('decrypt_duration_ms');
 const hashTrend = new Trend('hash_duration_ms');
-const hashIndexTrend = new Trend('hashindex_duration_ms');
 
 // Custom metrics - đo từ phía SERVER (Stopwatch bọc sát quanh đúng dòng gọi
 // thuật toán trong ProcessField(), KHÔNG tính network/serialize/overhead HTTP)
@@ -104,10 +101,7 @@ export function setup() {
       http.post(`${HOST}/api/encryptiontest/hmacsha256/field/hash`, JSON.stringify({ fieldName, value }), params);
       continue;
     }
-    if (ALGO === 'hashindex') {
-      http.post(`${HOST}/api/encryptiontest/hmacsha256/field/index`, JSON.stringify({ fieldName, value }), params);
-      continue;
-    }
+   
  
     // aes / rsa / fpe: warm-up cả encrypt lẫn decrypt
     const encRes = http.post(`${HOST}/api/encryptiontest/${ALGO}/field/encrypt`, JSON.stringify({ fieldName, value }), params);
@@ -147,19 +141,6 @@ export default function () {
 
     const serverMs = getServerTimeMs(res);
     if (serverMs !== null) hashServerTrend.add(serverMs, { algorithm: 'hash', field: fieldName });
-
-    sleep(1);
-    return;
-  }
-
-  // TRƯỜNG HỢP HASH INDEX (tìm kiếm gần đúng): cũng 1 chiều như hash thường,
-  // khác ở chỗ server chuẩn hóa chuỗi trước khi hash (viết hoa, gộp khoảng trắng)
-  if (ALGO === 'hashindex') {
-    const url = `${HOST}/api/encryptiontest/hmacsha256/field/index`;
-    const res = http.post(url, JSON.stringify({ fieldName, value }), params);
-
-    check(res, { 'hashindex status 200': (r) => r.status === 200 });
-    hashIndexTrend.add(res.timings.duration, { algorithm: 'hashindex', field: fieldName });
 
     sleep(1);
     return;
@@ -206,7 +187,7 @@ export default function () {
   sleep(1);
 }
 
-// CÁCH CHẠY (đủ 6 loại: plaintext, aes, rsa, fpe, hash, hashindex):
+// CÁCH CHẠY (đủ 5 loại: plaintext, aes, rsa, fpe, hash):
 //   k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=results_hash_50vu.json  test.js
 // (tương tự cho các thuật toán khác)
 //

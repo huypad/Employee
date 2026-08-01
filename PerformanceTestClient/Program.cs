@@ -14,9 +14,9 @@ namespace PerformanceTestClient
 {
     /// <summary>
     /// Dùng System.Diagnostics.Stopwatch để đo thời gian Encrypt/Decrypt.
-    /// Ghi lại SONG SONG 2 con số cho mỗi lần gọi:
-    ///   - ClientRoundTripMs: đo từ phía client (Stopwatch bọc quanh HTTP call) -
-    ///     bao gồm cả network, serialize JSON, overhead ASP.NET Core.
+    /// Ghi lại SONG SONipMs: đo từ phía client (Stopwatch bọc quanh HTTP call) -
+    ///     bao gồm cả neG 2 con số cho mỗi lần gọi:
+    ///   - ClientRoundTrtwork, serialize JSON, overhead ASP.NET Core.
     ///   - ServerExecutionMs: server tự đo (Stopwatch bọc SÁT quanh đúng dòng gọi
     ///     thuật toán trong ProcessField() bên EncryptionTestController.cs), trả về
     ///     kèm trong response - đây là thời gian THUẦN của riêng thuật toán,
@@ -76,9 +76,10 @@ namespace PerformanceTestClient
 
                     if (algorithm == "plaintext")
                     {
-                        var sw = Stopwatch.StartNew();
+                        var sw = Stopwatch.StartNew(); // bắt đầu
+                        //code cần đo
                         var res = await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName, value });
-                        sw.Stop();
+                        sw.Stop(); // kết thúc
 
                         double serverMs = await ReadServerExecutionTimeMs(res);
                         LogResult("PLAINTEXT", "None", Encoding.UTF8.GetByteCount(value), sw.Elapsed.TotalMilliseconds, serverMs, res.IsSuccessStatusCode);
@@ -102,20 +103,7 @@ namespace PerformanceTestClient
                         Console.WriteLine($"Client={swHash.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
                         continue;
                     }
-                    //  HASH INDEX (tìm kiếm gần đúng): 1 chiều, có chuẩn hóa chuỗi trước khi hash 
-                    if (algorithm == "hashindex")
-                    {
-                        var swHashIndex = Stopwatch.StartNew();
-                        var hashIndexRes = await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/index", new { fieldName, value });
-                        swHashIndex.Stop();
-
-                        double serverMs = await ReadServerExecutionTimeMs(hashIndexRes);
-                        LogResult("HMAC-SHA256", "IndexHash", Encoding.UTF8.GetByteCount(value), swHashIndex.Elapsed.TotalMilliseconds, serverMs, hashIndexRes.IsSuccessStatusCode);
-                        encryptClientTimes.Add(swHashIndex.Elapsed.TotalMilliseconds);
-                        encryptServerTimes.Add(serverMs);
-                        Console.WriteLine($"Client={swHashIndex.Elapsed.TotalMilliseconds:F2}ms  Server={serverMs:F3}ms");
-                        continue;
-                    }
+                    
 
                     //  ENCRYPT 
                     var swEncrypt = Stopwatch.StartNew();
@@ -164,7 +152,7 @@ namespace PerformanceTestClient
                 string tenThaoTac = algorithm == "hash" ? "Hash" : "Encrypt";
                 PrintSummary($"{tenThaoTac} (Client round-trip)", encryptClientTimes);
                 PrintSummary($"{tenThaoTac} (Server thuần thuật toán)", encryptServerTimes);
-                if (algorithm != "plaintext" && algorithm != "hash" && algorithm != "hashindex")
+                if (algorithm != "plaintext" && algorithm != "hash")
                 {
                     PrintSummary("Decrypt (Client round-trip)", decryptClientTimes);
                     PrintSummary("Decrypt (Server thuần thuật toán)", decryptServerTimes);

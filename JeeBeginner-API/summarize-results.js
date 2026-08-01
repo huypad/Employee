@@ -58,10 +58,14 @@ function docFile(filePath) {
     encrypt_server_ms: [],
     decrypt_server_ms: [],
     hash_server_ms: [],
+    create_duration_ms: [],
   };
 
   let checksTotal = 0;
   let checksFailed = 0;
+  let totalRequests = 0;
+  let firstTimeMs = null;
+  let lastTimeMs = null;
 
   for (const line of lines) {
     let obj;
@@ -81,9 +85,17 @@ function docFile(filePath) {
       checksTotal++;
       if (obj.data.value === 0) checksFailed++;
     }
+    if (obj.metric === 'http_reqs' && obj.data) {
+      totalRequests++;
+      const t = Date.parse(obj.data.time);
+      if (!Number.isNaN(t)) {
+        if (firstTimeMs === null || t < firstTimeMs) firstTimeMs = t;
+        if (lastTimeMs === null || t > lastTimeMs) lastTimeMs = t;
+      }
+    } 
   }
 
-  return { values, checksTotal, checksFailed };
+  return { values, checksTotal, checksFailed, totalRequests, firstTimeMs, lastTimeMs };
 }
 
 //  Tên nhóm: bỏ "_lan1", "_lan2"... để nhận ra các file cùng 1 cấu hình 
@@ -118,7 +130,8 @@ function main() {
 
   for (const filename of files) {
     const nhom = tenNhom(filename);
-    const { values, checksTotal, checksFailed } = docFile(path.join(RESULTS_DIR, filename));
+    // const { values, checksTotal, checksFailed } = docFile(path.join(RESULTS_DIR, filename));
+    const { values, checksTotal, checksFailed, totalRequests, firstTimeMs, lastTimeMs } = docFile(path.join(RESULTS_DIR, filename));
 
     if (!groups[nhom]) {
       groups[nhom] = {
@@ -128,10 +141,13 @@ function main() {
           hash_duration_ms: [], hashindex_duration_ms: [],
           plaintext_server_ms: [],
           encrypt_server_ms: [], decrypt_server_ms: [], hash_server_ms: [],
+          create_duration_ms: [],
         },
         checksTotal: 0,
         checksFailed: 0,
         files: [],
+        totalRequests: 0,
+        totalDurationSec: 0,//cộng dồn thời lượng thực tế của TỪNG file (không lấy min-max giữa các file, vì mỗi file là 1 lần chạy 30s riêng biệt, không liên tục)
       };
     }
 
@@ -141,6 +157,11 @@ function main() {
     groups[nhom].checksTotal += checksTotal;
     groups[nhom].checksFailed += checksFailed;
     groups[nhom].files.push(filename);
+
+    groups[nhom].totalRequests += totalRequests;
+    if (firstTimeMs !== null && lastTimeMs !== null) {
+      groups[nhom].totalDurationSec += (lastTimeMs - firstTimeMs) / 1000;
+    }
   }
 
   // BƯỚC 2: Tính thống kê cho từng nhóm (dựa trên dữ liệu ĐÃ GỘP)
@@ -161,6 +182,9 @@ function main() {
       encryptServer: summarizeMetric(g.values.encrypt_server_ms),
       decryptServer: summarizeMetric(g.values.decrypt_server_ms),
       hashServer: summarizeMetric(g.values.hash_server_ms),
+      create: summarizeMetric(g.values.create_duration_ms),
+      totalRequests: g.totalRequests,
+      throughput: g.totalDurationSec > 0 ? g.totalRequests / g.totalDurationSec : null,
     };
   });
 
@@ -171,12 +195,12 @@ function main() {
   console.log(
     'Nhóm'.padEnd(20) + 'SoLanChay'.padEnd(11) + 'ChecksFail'.padEnd(14) +
     'HTTPavg'.padEnd(10) + 'HTTPp95'.padEnd(10) +
-    'Encrypt/Hash avg'.padEnd(18) + 'Decrypt avg'.padEnd(14) + 'EncServer avg'.padEnd(15) + 'DecServer avg'.padEnd(15)
+    'Encrypt/Hash avg'.padEnd(18) + 'Decrypt avg'.padEnd(14) + 'EncServer avg'.padEnd(15) + 'DecServer avg'.padEnd(15) + 'Req/s'.padEnd(10) 
   );
   console.log('='.repeat(150));
 
   for (const r of ketQua) {
-    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex;
+    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
 
     // HTTPavg = tổng Encrypt + Decrypt (nếu có Decrypt), còn Plaintext/Hash/
@@ -197,7 +221,8 @@ function main() {
       fmt(clientChinh?.avg).padEnd(18) +
       fmt(r.decrypt?.avg).padEnd(14) +
       fmt(serverChinh?.avg).padEnd(15) +
-      fmt(r.decryptServer?.avg).padEnd(15)
+      fmt(r.decryptServer?.avg).padEnd(15) +
+      fmt(r.throughput).padEnd(10)
     );
   }
   console.log('='.repeat(150));
@@ -208,9 +233,9 @@ function main() {
   }
 
   // BƯỚC 4: Xuất ra CSV để mở Excel
-  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg'];
+  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec'];
   for (const r of ketQua) {
-    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex;
+    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
     const httpAvg = r.decrypt ? (clientChinh?.avg ?? 0) + (r.decrypt?.avg ?? 0) : clientChinh?.avg;
     const httpP95 = r.decrypt ? (clientChinh?.p95 ?? 0) + (r.decrypt?.p95 ?? 0) : clientChinh?.p95;
@@ -219,6 +244,7 @@ function main() {
       fmt(httpAvg), fmt(httpP95),
       fmt(clientChinh?.avg), fmt(r.decrypt?.avg),
       fmt(serverChinh?.avg), fmt(r.decryptServer?.avg),
+      r.totalRequests, fmt(r.throughput), 
     ].join(','));
   }
 

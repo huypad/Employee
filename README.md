@@ -122,7 +122,6 @@ dotnet run -- rsa 20
 dotnet run -- fpe 20
 dotnet run -- hash 20
 dotnet run -- plaintext 20
-dotnet run -- hashindex 20
 ```
 Kết quả in ra terminal + ghi vào `PerformanceTestClient/Logs/performance_log.csv`. Dữ liệu test lấy tuần tự từ `test-data-200.json` (200 bản ghi cố định, không phải random), đảm bảo tái lập được kết quả giữa các lần chạy.
 

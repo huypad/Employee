@@ -1,6 +1,7 @@
-import http from 'k6/http';
+﻿import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
+import { Trend } from 'k6/metrics';
 
 // Cách chạy:
 //   k6 run --env USERNAME=huytran --env PASSWORD=xxx --env RATE=50 test-create-nhanvien.js
@@ -9,6 +10,8 @@ const HOST = 'https://localhost:1404';
 const RATE = parseInt(__ENV.RATE || '50');
 const USERNAME = __ENV.USERNAME;
 const PASSWORD = __ENV.PASSWORD;
+const RUN_TAG = String(Date.now() % 900000).padStart(6, '0');
+const createTrend = new Trend('create_duration_ms');
 
 export const options = {
   scenarios: {
@@ -50,13 +53,15 @@ const employees = new SharedArray('employees-built', function () {
   for (let i = 0; i < count; i++) {
     // MaNhanVien hiện có dạng "NVxxxx" (6 ký tự) - controller yêu cầu ^NV\d{1,10}$
     // -> giữ nguyên tiền tố NV, đảm bảo phần số hợp lệ
-    let maNV = byField['MaNhanVien'][i];
-    if (!/^NV\d{1,10}$/i.test(maNV)) {
-      maNV = 'NV' + (100000 + i); // fallback tự sinh mã hợp lệ nếu giá trị gốc không đúng định dạng
-    }
+    // let maNV = byField['MaNhanVien'][i];
+    // if (!/^NV\d{1,10}$/i.test(maNV)) {
+    //   maNV = 'NV' + (100000 + i); // fallback tự sinh mã hợp lệ nếu giá trị gốc không đúng định dạng
+    // }
 
-    // CMND trong file gốc là 12 số (đã đúng chuẩn CCCD 12 số theo ValidateNhanVien)
-    const cccd = byField['CMND'][i];
+    // // CMND trong file gốc là 12 số (đã đúng chuẩn CCCD 12 số theo ValidateNhanVien)
+    // const cccd = byField['CMND'][i];
+    const maNV = 'NV' + RUN_TAG + String(i % 10000).padStart(4, '0');
+    const cccd = '02' + RUN_TAG + String(i % 10000).padStart(4, '0');
 
     list.push({
       MaNV: maNV,
@@ -98,7 +103,7 @@ export function setup() {
 }
 
 export default function (data) {
-  const idx = (__VU * 1000 + __ITER) % employees.length;
+  const idx = (__VU * 997 + __ITER) % employees.length;
   const emp = employees[idx];
 
   const res = http.post(
@@ -107,9 +112,14 @@ export default function (data) {
     commonHeaders(data.token)
   );
 
+  let body = null;
+  try { body = JSON.parse(res.body); } catch {}
+
   check(res, {
     'create status 200': (r) => r.status === 200,
+    'create thực sự thành công (không trùng)': () => body && body.status === 1,
   });
+  createTrend.add(res.timings.duration);
 
   sleep(0.1);
 }
