@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace JeeBeginner.Reponsitories.NhanVienManagement
 {
@@ -47,7 +48,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             int offset = (page - 1) * record;
             string sql = $@"{SelectColumns}
                 WHERE {where}
-                ORDER BY TRY_CONVERT(INT, REPLACE(MaNV, 'NV', '')), Id_NV
+                ORDER BY Id_NV ASC
                 OFFSET {offset} ROWS FETCH NEXT {record} ROWS ONLY";
             DataTable dt = new DataTable();
             using SqlConnection cnn = new SqlConnection(_connectionString);
@@ -80,11 +81,11 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             try
             {
                 using DpsConnection cnn = new DpsConnection(_connectionString);
-                string maNhanVien = (model.MaNV ?? string.Empty).Replace("'", "''");
-                DataTable duplicate = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE MaNV = N'{maNhanVien}'");
+                string hexMaNV = Hex(model.MaNV);
+                DataTable duplicate = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE I_MaNV = {hexMaNV}");
                 if (duplicate.Rows.Count > 0) return new ReturnSqlModel("Mã nhân viên đã tồn tại", "0");
-                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
-                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}'");
+                string hexCccd = Hex(model.CCCD);
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE I_CMND = {hexCccd}");
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
@@ -104,8 +105,8 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             {
                 using DpsConnection cnn = new DpsConnection(_connectionString);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
-                string cccd = (model.CCCD ?? string.Empty).Replace("'", "''");
-                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE CMND = N'{cccd}' AND Id_NV <> {model.Id}");
+                string hexCccd = Hex(model.CCCD);
+                DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE I_CMND = {hexCccd} AND Id_NV <> {model.Id}");
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 NhanVienCryptoModel enc = Encrypt(model.MaNV, hoLot, ten, model.CCCD, model.SoTaiKhoan);
                 string sql = RawUpdateSql(model.Id, model, hoLot, ten, enc);
@@ -132,7 +133,7 @@ VALUES(
  {SN(m.DiaChi)},{SN(m.PhongBan)},{SN(m.ChucVu)},
  {now},1,0,{now},
  {S(enc.MaNV_Enc)},{S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},
- {Hex(m.MaNV)},{Hex(hoLot)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)},{Hex(m.SDT)})";
+ {Hex(m.MaNV)},{Hex(hoLot)},{Hex(ten)},{Hex(m.CCCD)},{Hex(m.SoTaiKhoan)},{HexMobile(m.SDT)})";
         }
 
         private string RawUpdateSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
@@ -144,7 +145,7 @@ VALUES(
  PhongBan={SN(m.PhongBan)},Tenchucvu={SN(m.ChucVu)},LastModified={now},
  MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
  CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
- I_MaNV={Hex(m.MaNV)},I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)},I_Mobile={Hex(m.SDT)}
+ I_MaNV={Hex(m.MaNV)},I_Holot={Hex(hoLot)},I_Ten={Hex(ten)},I_CMND={Hex(m.CCCD)},I_Sotaikhoan={Hex(m.SoTaiKhoan)},I_Mobile={HexMobile(m.SDT)}
 WHERE Id_NV={id}";
         }
 
@@ -158,6 +159,13 @@ WHERE Id_NV={id}";
             if (hash == null) return "NULL";
             byte[] bytes = Encoding.UTF8.GetBytes(hash);
             return bytes.Length == 0 ? "NULL" : "0x" + BitConverter.ToString(bytes).Replace("-", "");
+        }
+
+        // SĐT được tìm theo chuỗi chữ số, nên 0908.154.457 và 0908154457 có cùng blind index.
+        private string HexMobile(string val)
+        {
+            string normalized = Regex.Replace(val ?? string.Empty, @"\D", string.Empty);
+            return Hex(normalized);
         }
 
 
@@ -177,7 +185,8 @@ WHERE Id_NV={id}";
         FROM dbo.Tbl_Nhanvien
         WHERE MaNV_Enc IS NULL OR I_MaNV IS NULL OR Holot_Enc IS NULL OR Ten_Enc IS NULL OR CMND_Enc IS NULL OR CMND_FPE IS NULL OR CMNDHash IS NULL
             OR CMND_Enc NOT LIKE 'RSAHYBRID:%'
-            OR I_Holot IS NULL OR I_Ten IS NULL OR I_CMND IS NULL OR I_Sotaikhoan IS NULL OR I_Mobile IS NULL");
+            OR I_Holot IS NULL OR I_Ten IS NULL OR I_CMND IS NULL OR I_Sotaikhoan IS NULL
+            OR (NULLIF(LTRIM(RTRIM(Mobile)), '') IS NOT NULL AND Mobile LIKE '%[0-9]%' AND I_Mobile IS NULL)");
 
             int updated = 0;
 
@@ -195,7 +204,7 @@ WHERE Id_NV={id}";
                 string sql = $@"UPDATE dbo.{TableName} SET
                     MaNV_Enc={S(enc.MaNV_Enc)},Holot_Enc={S(enc.Holot_Enc)},Ten_Enc={S(enc.Ten_Enc)},CMND_Enc={S(enc.CMND_Enc)},
                     CMND_FPE={S(enc.CMND_FPE)},CMNDHash={S(enc.CMNDHash)},
-                    I_MaNV={Hex(maNV)},I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},I_Mobile={Hex(mobile)},
+                    I_MaNV={Hex(maNV)},I_Holot={Hex(holot)},I_Ten={Hex(ten)},I_CMND={Hex(cmnd)},I_Sotaikhoan={Hex(sotaikhoan)},I_Mobile={HexMobile(mobile)},
                     LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}'
                 WHERE Id_NV={id}";
                 cnn.ExecuteNonQuery(sql);
@@ -215,6 +224,7 @@ WHERE Id_NV={id}";
                 -- Only take rows that still lack this marker so each completed batch
                 -- increases the I_MaNV counter and is not repeatedly reprocessed.
                 WHERE I_MaNV IS NULL
+                   OR (NULLIF(LTRIM(RTRIM(Mobile)), '') IS NOT NULL AND Mobile LIKE '%[0-9]%' AND I_Mobile IS NULL)
                 ORDER BY Id_NV");
 
             int updated = 0;
@@ -228,7 +238,7 @@ WHERE Id_NV={id}";
                 string sotaikhoan = row["Sotaikhoan"] == DBNull.Value ? null : Convert.ToString(row["Sotaikhoan"]);
                 string mobile = row["Mobile"] == DBNull.Value ? null : Convert.ToString(row["Mobile"]);
                 cnn.ExecuteNonQuery($@"UPDATE dbo.{TableName} SET
-                    I_MaNV={Hex(maNV)}, I_Holot={Hex(holot)}, I_Ten={Hex(ten)}, I_CMND={Hex(cmnd)}, I_Sotaikhoan={Hex(sotaikhoan)}, I_Mobile={Hex(mobile)},
+                    I_MaNV={Hex(maNV)}, I_Holot={Hex(holot)}, I_Ten={Hex(ten)}, I_CMND={Hex(cmnd)}, I_Sotaikhoan={Hex(sotaikhoan)}, I_Mobile={HexMobile(mobile)},
                     LastModified='{DateTime.Now:yyyy-MM-dd HH:mm:ss}' WHERE Id_NV={id}");
                 updated++;
             }
