@@ -87,13 +87,11 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 string hexCccd = Hex(model.CCCD);
                 DataTable duplicateCccd = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE I_CMND = {hexCccd}");
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
-                DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
-                int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
                 NhanVienCryptoModel enc = Encrypt(model.MaNV, hoLot, ten, model.CCCD, model.SoTaiKhoan);
-                string sql = RawInsertSql(nextId, model, hoLot, ten, enc);
-                cnn.ExecuteNonQuery(sql);
-                model.Id = nextId;
+                string sql = RawInsertSql(model, hoLot, ten, enc);
+                object newIdObj = cnn.ExecuteScalar(sql);
+                model.Id = newIdObj != null ? Convert.ToInt32(newIdObj) : 0;
                 return new ReturnSqlModel();
             }
             catch (Exception ex) { return new ReturnSqlModel(ex.Message, "0"); }
@@ -120,16 +118,17 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             _encryptionService.EncryptNhanVienWithRsaAndFpeCccd(new NhanVienCryptoModel
             { I_MaNV = maNV, I_Holot = hoLot, I_Ten = ten, I_CMND = cccd, I_Sotaikhoan = soTaiKhoan });
 
-        private string RawInsertSql(int id, NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
+        private string RawInsertSql(NhanVienModel m, string hoLot, string ten, NhanVienCryptoModel enc)
         {
             string now = $"'{DateTime.Now:yyyy-MM-dd HH:mm:ss}'";
             return $@"INSERT INTO dbo.{TableName}
-(Id_NV,MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,DiaChi,PhongBan,Tenchucvu,
+(MaNV,Holot,Ten,Mobile,CMND,Sotaikhoan,Email,DiaChi,PhongBan,Tenchucvu,
  LastModified,Status,Disable,DateCreated,
  MaNV_Enc,Holot_Enc,Ten_Enc,CMND_Enc,CMND_FPE,CMNDHash,
  I_MaNV,I_Holot,I_Ten,I_CMND,I_Sotaikhoan,I_Mobile)
+OUTPUT INSERTED.Id_NV
 VALUES(
- {id},{S(m.MaNV)},{S(hoLot)},{S(ten)},{S(m.SDT)},{S(m.CCCD)},{SN(m.SoTaiKhoan)},{SN(m.Email)},
+ {S(m.MaNV)},{S(hoLot)},{S(ten)},{S(m.SDT)},{S(m.CCCD)},{SN(m.SoTaiKhoan)},{SN(m.Email)},
  {SN(m.DiaChi)},{SN(m.PhongBan)},{SN(m.ChucVu)},
  {now},1,0,{now},
  {S(enc.MaNV_Enc)},{S(enc.Holot_Enc)},{S(enc.Ten_Enc)},{S(enc.CMND_Enc)},{S(enc.CMND_FPE)},{S(enc.CMNDHash)},
