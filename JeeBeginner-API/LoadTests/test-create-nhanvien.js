@@ -64,9 +64,9 @@ const employees = new SharedArray('employees-built', function () {
     const cccd = '02' + RUN_TAG + String(i % 10000).padStart(4, '0');
 
     list.push({
-      MaNV: maNV,
+      // MaNV: maNV,
       HoTen: `${byField['Holot'][i]} ${byField['Ten'][i]}`,
-      CCCD: cccd,
+      // CCCD: cccd,
       SDT: byField['Mobile'] ? byField['Mobile'][i] : '',
       Email: '',
       DiaChi: '',
@@ -104,7 +104,16 @@ export function setup() {
 
 export default function (data) {
   const idx = (__VU * 997 + __ITER) % employees.length;
-  const emp = employees[idx];
+  const base = employees[idx]; // chỉ lấy Họ Tên/SDT, không lấy MaNV/CCCD nữa
+
+  // __VU (tối đa 100) + __ITER luôn là tổ hợp DUY NHẤT trong 1 lần chạy K6,
+  // không phụ thuộc kích thước mảng employees -> không bao giờ trùng
+  const uniqueSuffix = String(__VU).padStart(3, '0') + String(__ITER).padStart(5, '0'); // 8 số, KHÔNG cắt bớt
+  const emp = {
+    ...base,
+    MaNV: 'NV' + RUN_TAG.slice(-2) + uniqueSuffix, // 2 + 8 = 10 số, vẫn hợp lệ (≤10)
+    CCCD: '0' + RUN_TAG.slice(0, 3) + uniqueSuffix,      // 1 + 3 + 8 = 12 số 
+  };
 
   const res = http.post(
     `${HOST}/api/nhanvienmanagement/CreateNhanVien`,

@@ -59,6 +59,7 @@ function docFile(filePath) {
     decrypt_server_ms: [],
     hash_server_ms: [],
     create_duration_ms: [],
+    search_duration_ms: [],
   };
 
   let checksTotal = 0;
@@ -142,6 +143,7 @@ function main() {
           plaintext_server_ms: [],
           encrypt_server_ms: [], decrypt_server_ms: [], hash_server_ms: [],
           create_duration_ms: [],
+          search_duration_ms: [],
         },
         checksTotal: 0,
         checksFailed: 0,
@@ -183,6 +185,7 @@ function main() {
       decryptServer: summarizeMetric(g.values.decrypt_server_ms),
       hashServer: summarizeMetric(g.values.hash_server_ms),
       create: summarizeMetric(g.values.create_duration_ms),
+      search: summarizeMetric(g.values.search_duration_ms),
       totalRequests: g.totalRequests,
       throughput: g.totalDurationSec > 0 ? g.totalRequests / g.totalDurationSec : null,
     };
@@ -200,7 +203,7 @@ function main() {
   console.log('='.repeat(150));
 
   for (const r of ketQua) {
-    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create;
+    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
 
     // HTTPavg = tổng Encrypt + Decrypt (nếu có Decrypt), còn Plaintext/Hash/
@@ -235,7 +238,7 @@ function main() {
   // BƯỚC 4: Xuất ra CSV để mở Excel
   const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec'];
   for (const r of ketQua) {
-    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create;
+    const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
     const httpAvg = r.decrypt ? (clientChinh?.avg ?? 0) + (r.decrypt?.avg ?? 0) : clientChinh?.avg;
     const httpP95 = r.decrypt ? (clientChinh?.p95 ?? 0) + (r.decrypt?.p95 ?? 0) : clientChinh?.p95;
