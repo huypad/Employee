@@ -252,7 +252,23 @@ namespace JeeBeginner.Controllers
         }
 
         [HttpPost("CreateNhanVien")]
-        public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) { try { string validationError = ValidateNhanVien(model, false); if (validationError != null) return JsonResultCommon.Custom(validationError); ReturnSqlModel result = await _service.CreateNhanVien(model); return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); } catch (Exception ex) { return JsonResultCommon.Exception(ex); } }
+        public async Task<object> CreateNhanVien([FromBody] NhanVienModel model) 
+        {   
+            try 
+            { 
+                string validationError = ValidateNhanVien(model, false); 
+                if (validationError != null) return JsonResultCommon.Custom(validationError); 
+                ReturnSqlModel result = await _service.CreateNhanVien(model); 
+                // return result.Susscess ? JsonResultCommon.ThanhCong(model) : JsonResultCommon.ThatBai(result.ErrorMessgage); 
+                return result.Susscess
+                    ? JsonResultCommon.ThanhCong(new { model, result.DbCheckMs, result.EncryptMs, result.InsertMs })
+                    : JsonResultCommon.ThatBai(result.ErrorMessgage);
+            } 
+            catch (Exception ex) 
+            { 
+                return JsonResultCommon.Exception(ex); 
+            }
+        }
 
         [HttpPost("ImportNhanVien")]
         public async Task<object> ImportNhanVien([FromBody] NhanVienModel model)

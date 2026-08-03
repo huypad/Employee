@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace JeeBeginner.Reponsitories.NhanVienManagement
 {
@@ -81,6 +82,7 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
             try
             {
                 using DpsConnection cnn = new DpsConnection(_connectionString);
+                var swCheck = Stopwatch.StartNew();
                 string hexMaNV = Hex(model.MaNV);
                 DataTable duplicate = await cnn.CreateDataTableAsync($"SELECT TOP 1 Id_NV FROM dbo.{TableName} WHERE I_MaNV = {hexMaNV}");
                 if (duplicate.Rows.Count > 0) return new ReturnSqlModel("Mã nhân viên đã tồn tại", "0");
@@ -89,12 +91,23 @@ namespace JeeBeginner.Reponsitories.NhanVienManagement
                 if (duplicateCccd.Rows.Count > 0) return new ReturnSqlModel("CCCD đã tồn tại", "0");
                 DataTable ids = await cnn.CreateDataTableAsync($"SELECT ISNULL(MAX(CAST(Id_NV AS INT)), 0) + 1 AS NextId FROM dbo.{TableName}");
                 int nextId = ids.Rows.Count == 0 ? 1 : Convert.ToInt32(ids.Rows[0]["NextId"]);
+                swCheck.Stop();
+                var swEncrypt = Stopwatch.StartNew();
                 SplitHoTen(model.HoTen, out string hoLot, out string ten);
                 NhanVienCryptoModel enc = Encrypt(model.MaNV, hoLot, ten, model.CCCD, model.SoTaiKhoan);
+                swEncrypt.Stop();
+                var swInsert = Stopwatch.StartNew();
                 string sql = RawInsertSql(nextId, model, hoLot, ten, enc);
                 cnn.ExecuteNonQuery(sql);
+                swInsert.Stop();
                 model.Id = nextId;
-                return new ReturnSqlModel();
+                // return new ReturnSqlModel();
+                return new ReturnSqlModel
+                {
+                    DbCheckMs = swCheck.Elapsed.TotalMilliseconds,
+                    EncryptMs = swEncrypt.Elapsed.TotalMilliseconds,
+                    InsertMs = swInsert.Elapsed.TotalMilliseconds,
+                };
             }
             catch (Exception ex) { return new ReturnSqlModel(ex.Message, "0"); }
         }

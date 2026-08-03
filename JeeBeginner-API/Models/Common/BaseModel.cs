@@ -225,5 +225,8 @@ namespace JeeBeginner.Models.Common
             ErrorMessgage = errorMessgage;
             ErrorCode = errorCode;
         }
+        public double DbCheckMs { get; set; }
+        public double EncryptMs { get; set; }
+        public double InsertMs { get; set; }
     }
 }

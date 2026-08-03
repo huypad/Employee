@@ -12,6 +12,10 @@ const USERNAME = __ENV.USERNAME;
 const PASSWORD = __ENV.PASSWORD;
 const RUN_TAG = String(Date.now() % 900000).padStart(6, '0');
 const createTrend = new Trend('create_duration_ms');
+const dbCheckTrend = new Trend('create_db_check_ms');
+const encryptTrend = new Trend('create_encrypt_ms');
+const insertTrend = new Trend('create_insert_ms');
+
 
 export const options = {
   scenarios: {
@@ -129,6 +133,11 @@ export default function (data) {
     'create thực sự thành công (không trùng)': () => body && body.status === 1,
   });
   createTrend.add(res.timings.duration);
+  if (body && body.data) {
+    if (typeof body.data.DbCheckMs === 'number') dbCheckTrend.add(body.data.DbCheckMs);
+    if (typeof body.data.EncryptMs === 'number') encryptTrend.add(body.data.EncryptMs);
+    if (typeof body.data.InsertMs === 'number') insertTrend.add(body.data.InsertMs);
+  }
 
   sleep(0.1);
 }

@@ -60,6 +60,9 @@ function docFile(filePath) {
     hash_server_ms: [],
     create_duration_ms: [],
     search_duration_ms: [],
+    create_db_check_ms: [],
+    create_encrypt_ms: [],
+    create_insert_ms: [],
   };
 
   let checksTotal = 0;
@@ -144,6 +147,9 @@ function main() {
           encrypt_server_ms: [], decrypt_server_ms: [], hash_server_ms: [],
           create_duration_ms: [],
           search_duration_ms: [],
+          create_db_check_ms: [],
+          create_encrypt_ms: [],
+          create_insert_ms: [],
         },
         checksTotal: 0,
         checksFailed: 0,
@@ -186,6 +192,9 @@ function main() {
       hashServer: summarizeMetric(g.values.hash_server_ms),
       create: summarizeMetric(g.values.create_duration_ms),
       search: summarizeMetric(g.values.search_duration_ms),
+      createDbCheck: summarizeMetric(g.values.create_db_check_ms),
+      createEncrypt: summarizeMetric(g.values.create_encrypt_ms),
+      createInsert: summarizeMetric(g.values.create_insert_ms),
       totalRequests: g.totalRequests,
       throughput: g.totalDurationSec > 0 ? g.totalRequests / g.totalDurationSec : null,
     };
@@ -198,7 +207,9 @@ function main() {
   console.log(
     'Nhóm'.padEnd(20) + 'SoLanChay'.padEnd(11) + 'ChecksFail'.padEnd(14) +
     'HTTPavg'.padEnd(10) + 'HTTPp95'.padEnd(10) +
-    'Encrypt/Hash avg'.padEnd(18) + 'Decrypt avg'.padEnd(14) + 'EncServer avg'.padEnd(15) + 'DecServer avg'.padEnd(15) + 'Req/s'.padEnd(10) 
+    'Encrypt/Hash avg'.padEnd(18) + 'Decrypt avg'.padEnd(14) + 
+    'EncServer avg'.padEnd(15) + 'DecServer avg'.padEnd(15) + 'Req/s'.padEnd(10) +
+    'DbCheck avg'.padEnd(13) + 'CrEncrypt avg'.padEnd(15) + 'Insert avg'.padEnd(12)
   );
   console.log('='.repeat(150));
 
@@ -225,7 +236,10 @@ function main() {
       fmt(r.decrypt?.avg).padEnd(14) +
       fmt(serverChinh?.avg).padEnd(15) +
       fmt(r.decryptServer?.avg).padEnd(15) +
-      fmt(r.throughput).padEnd(10)
+      fmt(r.throughput).padEnd(10) +
+      fmt(r.createDbCheck?.avg).padEnd(13) +
+      fmt(r.createEncrypt?.avg).padEnd(15) +
+      fmt(r.createInsert?.avg).padEnd(12)
     );
   }
   console.log('='.repeat(150));
@@ -236,7 +250,7 @@ function main() {
   }
 
   // BƯỚC 4: Xuất ra CSV để mở Excel
-  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec'];
+  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg'];
   for (const r of ketQua) {
     const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
@@ -248,6 +262,7 @@ function main() {
       fmt(clientChinh?.avg), fmt(r.decrypt?.avg),
       fmt(serverChinh?.avg), fmt(r.decryptServer?.avg),
       r.totalRequests, fmt(r.throughput), 
+      fmt(r.createDbCheck?.avg), fmt(r.createEncrypt?.avg), fmt(r.createInsert?.avg),
     ].join(','));
   }
 
