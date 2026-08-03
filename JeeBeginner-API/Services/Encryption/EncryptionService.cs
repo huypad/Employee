@@ -26,6 +26,10 @@ namespace JeeBeginner.Services.Encryption
         private readonly byte[] _fpeKey;
         private readonly byte[] _fpeTweak;
         private readonly byte[] _hmacKey;
+        private readonly Lazy<RSA> _rsaEncryptor;
+        private readonly Lazy<RSA> _rsaDecryptor;
+        private readonly object _rsaEncryptorLock = new object();
+        private readonly object _rsaDecryptorLock = new object();
 
         public EncryptionService(IConfiguration configuration)
         {
@@ -34,6 +38,8 @@ namespace JeeBeginner.Services.Encryption
             _fpeKey = ResolveRequiredBase64Key("Encryption:FpeKey", 32);
             _fpeTweak = ResolveTweak();
             _hmacKey = ResolveRequiredBase64Key("Encryption:HmacKey", 32);
+            _rsaEncryptor = new Lazy<RSA>(CreateRsaForEncryption, true);
+            _rsaDecryptor = new Lazy<RSA>(CreateRsaForDecryption, true);
         }
 
         public string EncryptAes(string plainText)
@@ -99,9 +105,9 @@ namespace JeeBeginner.Services.Encryption
             }
 
             byte[] encryptedKey;
-            using (RSA rsa = CreateRsaForEncryption())
+            lock (_rsaEncryptorLock)
             {
-                encryptedKey = rsa.Encrypt(dataKey, RSAEncryptionPadding.OaepSHA256);
+                encryptedKey = _rsaEncryptor.Value.Encrypt(dataKey, RSAEncryptionPadding.OaepSHA256);
             }
 
             CryptographicOperations.ZeroMemory(dataKey);
@@ -130,9 +136,9 @@ namespace JeeBeginner.Services.Encryption
             byte[] plainBytes = new byte[cipherBytes.Length];
 
             byte[] dataKey;
-            using (RSA rsa = CreateRsaForDecryption())
+            lock (_rsaDecryptorLock)
             {
-                dataKey = rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
+                dataKey = _rsaDecryptor.Value.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
             }
 
             using (AesGcm aes = new AesGcm(dataKey, AesTagSize))
