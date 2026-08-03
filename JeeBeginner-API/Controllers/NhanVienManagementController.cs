@@ -98,9 +98,18 @@ namespace JeeBeginner.Controllers
                     string whereHash;
                     string kwTrim = keyword.Trim();
                     bool isDigitsOnly = System.Text.RegularExpressions.Regex.IsMatch(kwTrim, @"^\d+$");
+                    string phoneDigits = System.Text.RegularExpressions.Regex.Replace(kwTrim, @"\D", string.Empty);
+                    bool isPhoneNumber = phoneDigits.Length == 10 && System.Text.RegularExpressions.Regex.IsMatch(phoneDigits, @"^0\d{9}$");
                     bool isMaNV = System.Text.RegularExpressions.Regex.IsMatch(kwTrim, @"^NV\d+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-                    if (isDigitsOnly)
+                    if (isPhoneNumber)
+                    {
+                        // SĐT dùng blind index riêng. Chuẩn hóa trước khi HMAC để người dùng
+                        // có thể nhập 0908154457 hoặc 0908.154.457 đều cho cùng một kết quả.
+                        string mobileHash = ToSearchHashSqlLiteral(phoneDigits);
+                        whereHash = where + $@" AND I_Mobile = {mobileHash}";
+                    }
+                    else if (isDigitsOnly)
                     {
                         // 1. Nếu 9 hoặc 12 số -> CCCD đầy đủ 
                         //    Trường hợp khác -> Hash Index Seek I_Mobile HOẶC I_Sotaikhoan
