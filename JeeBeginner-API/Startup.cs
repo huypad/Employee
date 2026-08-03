@@ -122,7 +122,7 @@ namespace JeeBeginner
             services.AddTransient<ICustomAuthorizationService, CustomAuthorizationService>();
             services.AddTransient<ICustomerManagementService, CustomerManagementService>();
             services.AddTransient<INhanVienManagementService, NhanVienManagementService>();
-            services.AddTransient<IEncryptionService, EncryptionService>();
+            services.AddSingleton<IEncryptionService, EncryptionService>();
             #endregion add service
         }
 
