@@ -331,4 +331,4 @@ ORDER BY TRY_CONVERT(INT, REPLACE(MaNV, 'NV', '')), Id_NV DESC";
             return dt.AsEnumerable().Select(MapNhanVien).ToList();
         }
     }
-}
+} 
