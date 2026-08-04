@@ -228,5 +228,6 @@ namespace JeeBeginner.Models.Common
             ErrorMessgage = errorMessgage;
             ErrorCode = errorCode;
         }
+    
     }
 }
