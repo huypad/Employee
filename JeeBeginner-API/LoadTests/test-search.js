@@ -15,8 +15,11 @@ import { Trend } from 'k6/metrics';
 const HOST = 'https://localhost:1404';
 const RATE = parseInt(__ENV.RATE || '100'); // 100-200 request/giây 
 const searchTrend = new Trend('search_duration_ms');
+const hashTrend = new Trend('search_hash_ms');
+const dbTrend = new Trend('search_db_ms');
 // const USERNAME = __ENV.USERNAME;
 // const PASSWORD = __ENV.PASSWORD;
+
 
 export const options = {
   scenarios: {
@@ -103,12 +106,18 @@ export default function () {
     `?filter.keys=keyword&filter.vals=${encodeURIComponent(cccd)}`;
 
   const res = http.get(url, commonParams());
+  let body = null;
+  try { body = JSON.parse(res.body); } catch {}
 
   check(res, {
     'search status 200': (r) => r.status === 200,
   });
   
   searchTrend.add(res.timings.duration);
+  if (body && body.data) {
+    if (typeof body.data.HashMs === 'number') hashTrend.add(body.data.HashMs);
+    if (typeof body.data.DbMs === 'number') dbTrend.add(body.data.DbMs);
+  }
   sleep(0.1); // nghỉ ngắn hơn Script 1, vì mục tiêu là bắn NHIỀU request/giây liên tục
 }
 

@@ -63,6 +63,8 @@ function docFile(filePath) {
     create_db_check_ms: [],
     create_encrypt_ms: [],
     create_insert_ms: [],
+    search_hash_ms: [],
+    search_db_ms: [],
   };
 
   let checksTotal = 0;
@@ -150,6 +152,8 @@ function main() {
           create_db_check_ms: [],
           create_encrypt_ms: [],
           create_insert_ms: [],
+          search_hash_ms: [],
+          search_db_ms: [],
         },
         checksTotal: 0,
         checksFailed: 0,
@@ -195,6 +199,8 @@ function main() {
       createDbCheck: summarizeMetric(g.values.create_db_check_ms),
       createEncrypt: summarizeMetric(g.values.create_encrypt_ms),
       createInsert: summarizeMetric(g.values.create_insert_ms),
+      searchHash: summarizeMetric(g.values.search_hash_ms),
+      searchDb: summarizeMetric(g.values.search_db_ms),
       totalRequests: g.totalRequests,
       throughput: g.totalDurationSec > 0 ? g.totalRequests / g.totalDurationSec : null,
     };
@@ -209,7 +215,8 @@ function main() {
     'HTTPavg'.padEnd(10) + 'HTTPp95'.padEnd(10) +
     'Encrypt/Hash avg'.padEnd(18) + 'Decrypt avg'.padEnd(14) + 
     'EncServer avg'.padEnd(15) + 'DecServer avg'.padEnd(15) + 'Req/s'.padEnd(10) +
-    'DbCheck avg'.padEnd(13) + 'CrEncrypt avg'.padEnd(15) + 'Insert avg'.padEnd(12)
+    'DbCheck avg'.padEnd(13) + 'CrEncrypt avg'.padEnd(15) + 'Insert avg'.padEnd(12) +
+    'SearchHash avg'.padEnd(16) + 'SearchDb avg'.padEnd(14)
   );
   console.log('='.repeat(150));
 
@@ -239,10 +246,12 @@ function main() {
       fmt(r.throughput).padEnd(10) +
       fmt(r.createDbCheck?.avg).padEnd(13) +
       fmt(r.createEncrypt?.avg).padEnd(15) +
-      fmt(r.createInsert?.avg).padEnd(12)
+      fmt(r.createInsert?.avg).padEnd(12) +
+      fmt(r.searchHash?.avg).padEnd(16) +
+      fmt(r.searchDb?.avg).padEnd(14)
     );
   }
-  console.log('='.repeat(150));
+  console.log('='.repeat(170));
 
   console.log('\nFile nào thuộc nhóm nào:');
   for (const r of ketQua) {
@@ -250,7 +259,7 @@ function main() {
   }
 
   // BƯỚC 4: Xuất ra CSV để mở Excel
-  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg'];
+  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg,SearchHashAvg,SearchDbAvg'];
   for (const r of ketQua) {
     const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
     const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
@@ -263,6 +272,7 @@ function main() {
       fmt(serverChinh?.avg), fmt(r.decryptServer?.avg),
       r.totalRequests, fmt(r.throughput), 
       fmt(r.createDbCheck?.avg), fmt(r.createEncrypt?.avg), fmt(r.createInsert?.avg),
+      fmt(r.searchHash?.avg), fmt(r.searchDb?.avg),
     ].join(','));
   }
 

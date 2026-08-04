@@ -14,9 +14,9 @@ namespace PerformanceTestClient
 {
     /// <summary>
     /// Dùng System.Diagnostics.Stopwatch để đo thời gian Encrypt/Decrypt.
-    /// Ghi lại SONG SONipMs: đo từ phía client (Stopwatch bọc quanh HTTP call) -
-    ///     bao gồm cả neG 2 con số cho mỗi lần gọi:
-    ///   - ClientRoundTrtwork, serialize JSON, overhead ASP.NET Core.
+    /// Ghi lại SONG SONG 2 con số cho mỗi lần gọi:
+    ///   - ClientRoundTripMs: đo từ phía client (Stopwatch bọc quanh HTTP call) -
+    ///     bao gồm cả network, serialize JSON, overhead ASP.NET Core.
     ///   - ServerExecutionMs: server tự đo (Stopwatch bọc SÁT quanh đúng dòng gọi
     ///     thuật toán trong ProcessField() bên EncryptionTestController.cs), trả về
     ///     kèm trong response - đây là thời gian THUẦN của riêng thuật toán,
