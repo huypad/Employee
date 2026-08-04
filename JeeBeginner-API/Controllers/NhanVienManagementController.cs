@@ -18,6 +18,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using JeeBeginner.Services.Encryption;
+using System.Diagnostics;
 
 namespace JeeBeginner.Controllers
 {
@@ -195,6 +196,7 @@ namespace JeeBeginner.Controllers
                 if (!string.IsNullOrWhiteSpace(daKhoa)) where += $" AND {employeeStatusSql} = 0";
                 if (!string.IsNullOrWhiteSpace(dangSuDung)) where += $" AND {employeeStatusSql} = 1";
 
+                var swHash = Stopwatch.StartNew();
                 string whereHash = where;
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
@@ -233,10 +235,20 @@ namespace JeeBeginner.Controllers
                             whereHash = where + $@" AND I_Ten = {exactHash}";
                     }
                 }
+                swHash.Stop();
 
+                var swDb = Stopwatch.StartNew();
                 IEnumerable<NhanVienModel> items = await _service.Get_DSNhanVien(whereHash, "Id_NV DESC", 1, 1);
                 NhanVienModel item = items.FirstOrDefault();
-                return Ok(JsonResultCommon.ThanhCong(item));
+                swDb.Stop();
+                // return Ok(JsonResultCommon.ThanhCong(item));
+
+                return Ok(JsonResultCommon.ThanhCong(new
+                {
+                    item,
+                    HashMs = swHash.Elapsed.TotalMilliseconds,
+                    DbMs = swDb.Elapsed.TotalMilliseconds,
+                }));
             }
             catch (Exception ex) { return BadRequest(JsonResultCommon.Exception(ex)); }
         }
