@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -211,6 +211,9 @@ namespace JeeBeginner.Models.Common
         public bool Susscess { get; set; }
         public string ErrorMessgage { get; set; }
         public string ErrorCode { get; set; }
+        public double DbCheckMs { get; set; }
+        public double EncryptMs { get; set; }
+        public double InsertMs { get; set; }
 
         public ReturnSqlModel()
         {
