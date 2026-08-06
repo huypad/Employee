@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Serilog;
+using System.Net.Http.Headers;
 
 namespace PerformanceTestClient
 {
@@ -27,6 +28,7 @@ namespace PerformanceTestClient
     public static class Program
     {
         private const string Host = "https://localhost:1404";
+        private static readonly string CccdCsvPath = Path.Combine(Directory.GetCurrentDirectory(), "Danh_sach_CMND.csv");
         private static readonly string LogFolder = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
         private static readonly string LogFilePath = Path.Combine(LogFolder, "performance_log.csv");
 
@@ -47,21 +49,40 @@ namespace PerformanceTestClient
                     ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
                 };
                 using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(Host) };
-
-                Console.WriteLine("Đang warm-up (không tính vào kết quả)...");
-                try
+                if (algorithm == "create")
                 {
-                    string warmupField = "CMND";
-                    string warmupValue = "000000000000";
-
-                    if (algorithm == "plaintext")
-                        await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName = warmupField, value = warmupValue });
-                    else if (algorithm == "hash")
-                        await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName = warmupField, value = warmupValue });
-                    else
-                        await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName = warmupField, value = warmupValue });
+                    if (args.Length < 4)
+                    {
+                        Console.WriteLine("Thiếu tài khoản/mật khẩu. Chạy lại: dotnet run -- create <soLanGoi> <username> <password>");
+                        return;
+                    }
+                    string username = args[2];
+                    string password = args[3];
+                    await RunCreateAsync(httpClient, soLanGoi, username, password);
+                    return;
                 }
-                catch { /* bỏ qua lỗi warm-up nếu có */ }
+                if (algorithm == "search")
+                {
+                    await RunSearchAsync(httpClient, soLanGoi);
+                    return;
+                }
+                Console.WriteLine("Đang warm-up (30 lần, không tính vào kết quả)...");
+                for (int w = 0; w < 30; w++)
+                {
+                    try
+                    {
+                        string warmupField = "CMND";
+                        string warmupValue = "000000000000";
+
+                        if (algorithm == "plaintext")
+                            await httpClient.PostAsJsonAsync("/api/encryptiontest/plaintext/field", new { fieldName = warmupField, value = warmupValue });
+                        else if (algorithm == "hash")
+                            await httpClient.PostAsJsonAsync("/api/encryptiontest/hmacsha256/field/hash", new { fieldName = warmupField, value = warmupValue });
+                        else
+                            await httpClient.PostAsJsonAsync($"/api/encryptiontest/{algorithm}/field/encrypt", new { fieldName = warmupField, value = warmupValue });
+                    }
+                    catch { /* bỏ qua lỗi warm-up nếu có */ }
+                }
                 Console.WriteLine("Warm-up xong, bắt đầu đo thật:\n");
 
                 var encryptClientTimes = new List<double>();
@@ -165,7 +186,96 @@ namespace PerformanceTestClient
                 Log.CloseAndFlush();
             }
         }
+        private static async Task RunCreateAsync(HttpClient httpClient, int soLanGoi, string username, string password)
+        {
+            // Đăng nhập lấy token — 1 lần duy nhất, giống setup() bên K6
+            var loginRes = await httpClient.PostAsJsonAsync("/api/authorization/login", new { Username = username, Password = password });
+            if (!loginRes.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Đăng nhập thất bại (status {(int)loginRes.StatusCode}): {await loginRes.Content.ReadAsStringAsync()}");
+                return;
+            }
+            var loginBody = await loginRes.Content.ReadAsStringAsync();
+            using var loginDoc = JsonDocument.Parse(loginBody);
+            string? token = loginDoc.RootElement.GetProperty("token").GetString();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);  // ← THÊM DÒNG NÀY
+            Console.WriteLine("Đăng nhập OK, bắt đầu tạo nhân viên:\n");
 
+            // RUN_TAG chống trùng MaNV/CCCD giữa các lần chạy — giống cơ chế K6
+            string runTag = (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % 900000).ToString().PadLeft(6, '0');
+
+            var (holotList, tenList, mobileList) = LoadEmployeeFields();
+            
+
+            var clientTimes = new List<double>();
+            var dbCheckTimes = new List<double>();
+            var encryptTimes = new List<double>();
+            var insertTimes = new List<double>();
+            int soLanThanhCong = 0;
+
+            for (int i = 1; i <= soLanGoi; i++)
+            {
+                int idx = (i - 1) % holotList.Count;
+                string uniqueSuffix = i.ToString().PadLeft(8, '0');
+                string maNV = "NV" + runTag.Substring(4, 2) + uniqueSuffix;      // 2 + 8 = 10 số
+                string cccd = "0" + runTag.Substring(0, 3) + uniqueSuffix;        // 1 + 3 + 8 = 12 số
+
+                var emp = new
+                {
+                    MaNV = maNV,
+                    HoTen = $"{holotList[idx]} {tenList[idx]}",
+                    CCCD = cccd,
+                    SDT = mobileList.Count > 0 ? mobileList[idx % mobileList.Count] : "",
+                    Email = "",
+                    DiaChi = "",
+                    PhongBan = "",
+                    ChucVu = "",
+                };
+
+                Console.Write($"Lần {i,3}/{soLanGoi} - MaNV={maNV} ... ");
+
+                var sw = Stopwatch.StartNew();
+                var res = await httpClient.PostAsJsonAsync("/api/nhanvienmanagement/CreateNhanVien", emp);
+                sw.Stop();
+
+                var body = await res.Content.ReadAsStringAsync();
+                double dbCheckMs = 0, encryptMs = 0, insertMs = 0;
+                bool thanhCong = false;
+                try
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("status", out var statusEl))
+                        thanhCong = statusEl.GetInt32() == 1;
+                    if (doc.RootElement.TryGetProperty("data", out var dataEl))
+                    {
+                        if (dataEl.TryGetProperty("DbCheckMs", out var e1)) dbCheckMs = e1.GetDouble();
+                        if (dataEl.TryGetProperty("EncryptMs", out var e2)) encryptMs = e2.GetDouble();
+                        if (dataEl.TryGetProperty("InsertMs", out var e3)) insertMs = e3.GetDouble();
+                    }
+                }
+                catch (JsonException) { /* body không hợp lệ, bỏ qua */ }
+
+                if (thanhCong) soLanThanhCong++;
+
+                clientTimes.Add(sw.Elapsed.TotalMilliseconds);
+                dbCheckTimes.Add(dbCheckMs);
+                encryptTimes.Add(encryptMs);
+                insertTimes.Add(insertMs);
+
+                LogResult("CREATE", "DbCheck", 0, sw.Elapsed.TotalMilliseconds, dbCheckMs, thanhCong);
+                LogResult("CREATE", "Encrypt", 0, sw.Elapsed.TotalMilliseconds, encryptMs, thanhCong);
+                LogResult("CREATE", "Insert", 0, sw.Elapsed.TotalMilliseconds, insertMs, thanhCong);
+
+                Console.WriteLine($"Client={sw.Elapsed.TotalMilliseconds:F2}ms  DbCheck={dbCheckMs:F3}ms  Encrypt={encryptMs:F3}ms  Insert={insertMs:F3}ms  ThanhCong={thanhCong}");
+            }
+
+            Console.WriteLine($"\nSố lần tạo thành công: {soLanThanhCong}/{soLanGoi}");
+            PrintSummary("Create (Client round-trip)", clientTimes);
+            PrintSummary("Create (Server - DbCheck)", dbCheckTimes);
+            PrintSummary("Create (Server - Encrypt)", encryptTimes);
+            PrintSummary("Create (Server - Insert)", insertTimes);
+            Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
+        }
         /// <summary>
         /// Đọc field "ServerExecutionTimeMs" mà server trả về trong response -
         /// đây là thời gian server tự đo (Stopwatch bọc sát quanh dòng gọi thuật toán).
@@ -211,7 +321,81 @@ namespace PerformanceTestClient
             int idx = (lanThu - 1) % _testData.Count;
             return _testData[idx];
         }
+        private static (List<string> holot, List<string> ten, List<string> mobile) LoadEmployeeFields()
+        {
+            var json = File.ReadAllText(DataFilePath);
+            using var doc = JsonDocument.Parse(json);
+            var byField = new Dictionary<string, List<string>>();
+            foreach (var e in doc.RootElement.EnumerateArray())
+            {
+                string field = e.GetProperty("fieldName").GetString()!;
+                string val = e.GetProperty("value").GetString()!;
+                if (!byField.ContainsKey(field)) byField[field] = new List<string>();
+                byField[field].Add(val);
+            }
+            return (byField.GetValueOrDefault("Holot", new List<string> { "" }),
+                    byField.GetValueOrDefault("Ten", new List<string> { "" }),
+                    byField.GetValueOrDefault("Mobile", new List<string>()));
+        }
+        private static async Task RunSearchAsync(HttpClient httpClient, int soLanGoi)
+        {
+            var allLines = File.ReadAllLines(CccdCsvPath)
+                .Select(l => l.Trim().TrimStart('\uFEFF'))
+                .Where(l => l.Length > 0)
+                .ToList();
 
+            Console.WriteLine($"Đã đọc {allLines.Count} CCCD từ {CccdCsvPath}");
+
+            // Warm-up 30 lần, giống test-search.js, không tính vào kết quả
+            Console.WriteLine("Đang warm-up (không tính vào kết quả)...");
+            for (int w = 0; w < 30 && w < allLines.Count; w++)
+            {
+                try { await httpClient.GetAsync($"/api/nhanvienmanagement/search/test?filter.keys=keyword&filter.vals={Uri.EscapeDataString(allLines[w])}"); }
+                catch { /* bỏ qua lỗi warm-up */ }
+            }
+            Console.WriteLine("Warm-up xong, bắt đầu đo thật:\n");
+
+            var clientTimes = new List<double>();
+            var hashTimes = new List<double>();
+            var dbTimes = new List<double>();
+
+            for (int i = 1; i <= soLanGoi; i++)
+            {
+                string cccd = allLines[(i - 1) % allLines.Count];
+                Console.Write($"Lần {i,3}/{soLanGoi} - cccd={cccd} ... ");
+
+                var sw = Stopwatch.StartNew();
+                var res = await httpClient.GetAsync($"/api/nhanvienmanagement/search/test?filter.keys=keyword&filter.vals={Uri.EscapeDataString(cccd)}");
+                sw.Stop();
+
+                var body = await res.Content.ReadAsStringAsync();
+                double hashMs = 0, dbMs = 0;
+                try
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    if (doc.RootElement.TryGetProperty("data", out var dataEl))
+                    {
+                        if (dataEl.TryGetProperty("HashMs", out var e1)) hashMs = e1.GetDouble();
+                        if (dataEl.TryGetProperty("DbMs", out var e2)) dbMs = e2.GetDouble();
+                    }
+                }
+                catch (JsonException) { /* bỏ qua */ }
+
+                clientTimes.Add(sw.Elapsed.TotalMilliseconds);
+                hashTimes.Add(hashMs);
+                dbTimes.Add(dbMs);
+
+                LogResult("SEARCH", "Hash", 0, sw.Elapsed.TotalMilliseconds, hashMs, res.IsSuccessStatusCode);
+                LogResult("SEARCH", "Db", 0, sw.Elapsed.TotalMilliseconds, dbMs, res.IsSuccessStatusCode);
+
+                Console.WriteLine($"Client={sw.Elapsed.TotalMilliseconds:F2}ms  Hash={hashMs:F3}ms  Db={dbMs:F3}ms");
+            }
+
+            PrintSummary("Search (Client round-trip)", clientTimes);
+            PrintSummary("Search (Server - Hash)", hashTimes);
+            PrintSummary("Search (Server - Db)", dbTimes);
+            Console.WriteLine($"\nLog chi tiết tại: {LogFilePath}");
+        }
         private static void EnsureLogFileExists()
         {
             if (!Directory.Exists(LogFolder)) Directory.CreateDirectory(LogFolder);
