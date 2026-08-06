@@ -30,9 +30,12 @@ function summarizeMetric(points) {
   const sorted = [...points].sort((a, b) => a - b);
   const sum = sorted.reduce((a, b) => a + b, 0);
   const p95Index = Math.min(Math.floor(sorted.length * 0.95), sorted.length - 1);
+  const mid = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 
   return {
     avg: sum / sorted.length,
+    median,
     min: sorted[0],
     max: sorted[sorted.length - 1],
     p95: sorted[p95Index],
@@ -63,8 +66,10 @@ function docFile(filePath) {
     create_db_check_ms: [],
     create_encrypt_ms: [],
     create_insert_ms: [],
+    create_server_ms: [],
     search_hash_ms: [],
     search_db_ms: [],
+    search_server_ms: [],
   };
 
   let checksTotal = 0;
@@ -114,7 +119,15 @@ function tenNhom(filename) {
     .replace(/_lan\d+$/i, '')
     .replace(/_run\d+$/i, '');
 }
+function parseNhom(nhom) {
+  const m = nhom.match(/^(.+?)_(\d+)(vu|rps)$/i);
+  if (!m) return { algorithm: nhom, loadLevel: null };
+  return { algorithm: m[1].toLowerCase(), loadLevel: Number(m[2]) };
+}
 
+function requestsPerIteration(r) {
+  return (r.encrypt && r.decrypt) ? 2 : 1;
+}
 // CHẠY CHÍNH
 
 function main() {
@@ -152,8 +165,10 @@ function main() {
           create_db_check_ms: [],
           create_encrypt_ms: [],
           create_insert_ms: [],
+          create_server_ms: [],
           search_hash_ms: [],
           search_db_ms: [],
+          search_server_ms: [],
         },
         checksTotal: 0,
         checksFailed: 0,
@@ -199,8 +214,10 @@ function main() {
       createDbCheck: summarizeMetric(g.values.create_db_check_ms),
       createEncrypt: summarizeMetric(g.values.create_encrypt_ms),
       createInsert: summarizeMetric(g.values.create_insert_ms),
+      createServer: summarizeMetric(g.values.create_server_ms),
       searchHash: summarizeMetric(g.values.search_hash_ms),
       searchDb: summarizeMetric(g.values.search_db_ms),
+      searchServer: summarizeMetric(g.values.search_server_ms),
       totalRequests: g.totalRequests,
       throughput: g.totalDurationSec > 0 ? g.totalRequests / g.totalDurationSec : null,
     };
@@ -222,7 +239,7 @@ function main() {
 
   for (const r of ketQua) {
     const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
-    const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
+    const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer ?? r.createServer ?? r.searchServer;
 
     // HTTPavg = tổng Encrypt + Decrypt (nếu có Decrypt), còn Plaintext/Hash/
     // HashIndex chỉ có 1 chiều nên HTTPavg = chính nó
@@ -259,12 +276,16 @@ function main() {
   }
 
   // BƯỚC 4: Xuất ra CSV để mở Excel
-  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg,SearchHashAvg,SearchDbAvg'];
+  // const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg,SearchHashAvg,SearchDbAvg'];
+  const csv = ['Nhom,SoLanChay,ChecksFailed,ChecksTotal,HttpAvg,HttpP95,EncryptOrHashAvg,DecryptAvg,EncryptServerAvg,DecryptServerAvg,TotalRequests,RequestsPerSec,CreateDbCheckAvg,CreateEncryptAvg,CreateInsertAvg,SearchHashAvg,SearchDbAvg,Algorithm,LoadLevel,ClientRoundTripMs,ServerExecutionMs,Avg,Median,Min,Max,P95,Throughput,FailedRate'];
   for (const r of ketQua) {
     const clientChinh = r.plaintext ?? r.encrypt ?? r.hash ?? r.hashIndex ?? r.create ?? r.search;
-    const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer;
+    const serverChinh = r.plaintextServer ?? r.encryptServer ?? r.hashServer ?? r.createServer ?? r.searchServer;
     const httpAvg = r.decrypt ? (clientChinh?.avg ?? 0) + (r.decrypt?.avg ?? 0) : clientChinh?.avg;
     const httpP95 = r.decrypt ? (clientChinh?.p95 ?? 0) + (r.decrypt?.p95 ?? 0) : clientChinh?.p95;
+    const { algorithm, loadLevel } = parseNhom(r.nhom);
+    const failedRate = r.checksTotal > 0 ? r.checksFailed / r.checksTotal : 0;
+    const throughputCycle = r.throughput != null ? r.throughput / requestsPerIteration(r) : null;
     csv.push([
       r.nhom, r.soLanChay, r.checksFailed, r.checksTotal,
       fmt(httpAvg), fmt(httpP95),
@@ -273,6 +294,10 @@ function main() {
       r.totalRequests, fmt(r.throughput), 
       fmt(r.createDbCheck?.avg), fmt(r.createEncrypt?.avg), fmt(r.createInsert?.avg),
       fmt(r.searchHash?.avg), fmt(r.searchDb?.avg),
+      algorithm, loadLevel,
+      fmt(clientChinh?.avg), fmt(serverChinh?.avg),
+      fmt(serverChinh?.avg), fmt(serverChinh?.median), fmt(serverChinh?.min), fmt(serverChinh?.max), fmt(serverChinh?.p95),
+      fmt(throughputCycle), failedRate.toFixed(4),
     ].join(','));
   }
 

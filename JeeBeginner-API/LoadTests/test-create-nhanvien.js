@@ -15,6 +15,7 @@ const createTrend = new Trend('create_duration_ms');
 const dbCheckTrend = new Trend('create_db_check_ms');
 const encryptTrend = new Trend('create_encrypt_ms');
 const insertTrend = new Trend('create_insert_ms');
+const serverTrend = new Trend('create_server_ms');
 
 
 export const options = {
@@ -137,6 +138,11 @@ export default function (data) {
     if (typeof body.data.DbCheckMs === 'number') dbCheckTrend.add(body.data.DbCheckMs);
     if (typeof body.data.EncryptMs === 'number') encryptTrend.add(body.data.EncryptMs);
     if (typeof body.data.InsertMs === 'number') insertTrend.add(body.data.InsertMs);
+    const db = body.data.DbCheckMs || 0;
+    const enc = body.data.EncryptMs || 0;
+    const ins = body.data.InsertMs || 0;
+
+    serverTrend.add(db + enc + ins);
   }
 
   sleep(0.1);

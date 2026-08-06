@@ -17,6 +17,7 @@ const RATE = parseInt(__ENV.RATE || '100'); // 100-200 request/giây
 const searchTrend = new Trend('search_duration_ms');
 const hashTrend = new Trend('search_hash_ms');
 const dbTrend = new Trend('search_db_ms');
+const serverTrend = new Trend('search_server_ms');
 // const USERNAME = __ENV.USERNAME;
 // const PASSWORD = __ENV.PASSWORD;
 
@@ -117,6 +118,10 @@ export default function () {
   if (body && body.data) {
     if (typeof body.data.HashMs === 'number') hashTrend.add(body.data.HashMs);
     if (typeof body.data.DbMs === 'number') dbTrend.add(body.data.DbMs);
+    const hash = body.data.HashMs || 0;
+    const db = body.data.DbMs || 0;
+
+    serverTrend.add(hash + db);
   }
   sleep(0.1); // nghỉ ngắn hơn Script 1, vì mục tiêu là bắn NHIỀU request/giây liên tục
 }
