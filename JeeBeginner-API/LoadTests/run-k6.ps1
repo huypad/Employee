@@ -34,8 +34,8 @@ foreach ($f in $existingFiles) {
 
 $nextLan = $maxLan + 1
 $outputFile = "$resultsDir/results_${Algo}_${Load}vu_lan${nextLan}.json"
-
+$dashboardFile = "$resultsDir/dashboard_${Algo}_${Load}vu_lan${nextLan}.html"
 Write-Host "=== Chạy K6: Algorithm=$Algo, LoadLevel=$Load, Lần thứ $nextLan ===" -ForegroundColor Cyan
 Write-Host "Kết quả sẽ lưu vào: $outputFile`n"
-
-k6 run --env LOAD_LEVEL=$Load --env ALGO=$Algo --out json=$outputFile test.js
+Write-Host "Dashboard biểu đồ sẽ lưu vào: $dashboardFile`n"
+k6 run --env LOAD_LEVEL=$Load --env ALGO=$Algo --out json=$outputFile --out web-dashboard=export=$dashboardFile test.js

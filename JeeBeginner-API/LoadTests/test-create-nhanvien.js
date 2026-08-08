@@ -2,6 +2,9 @@
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 import { Trend } from 'k6/metrics';
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+
 
 // Cách chạy:
 //   k6 run --env USERNAME=huytran --env PASSWORD=xxx --env RATE=50 test-create-nhanvien.js
@@ -147,6 +150,11 @@ export default function (data) {
 
   sleep(0.1);
 }
-
+export function handleSummary(data) {
+  return {
+    "summary.html": htmlReport(data),
+    stdout: textSummary(data, { indent: " ", enableColors: true }),
+  };
+}
 // CÁCH CHẠY:
 //   k6 run --env USERNAME=<tk> --env PASSWORD=<mk> --env RATE=50 --out json=../LoadTestResults/results_create_50rps.json test-create-nhanvien.js

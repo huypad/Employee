@@ -2,6 +2,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 import { SharedArray } from 'k6/data';
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+
 
 // CẤU HÌNH: chọn mức tải (LOAD_LEVEL) và thuật toán (ALGO) khi chạy
 //   k6 run --env LOAD_LEVEL=50 --env ALGO=aes   test.js
@@ -186,7 +189,12 @@ export default function () {
 
   sleep(1);
 }
-
+export function handleSummary(data) {
+  return {
+    "summary.html": htmlReport(data),
+    stdout: textSummary(data, { indent: " ", enableColors: true }),
+  };
+}
 // CÁCH CHẠY (đủ 5 loại: plaintext, aes, rsa, fpe, hash):
 //   k6 run --env LOAD_LEVEL=50  --env ALGO=hash --out json=results_hash_50vu.json  test.js
 // (tương tự cho các thuật toán khác)

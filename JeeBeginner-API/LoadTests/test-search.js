@@ -2,6 +2,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 import { Trend } from 'k6/metrics';
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+
 
 // SCRIPT 2 - TEST TÌM KIẾM/ĐỌC (Get_DSNhanVien)
 // Khác với Script 1 (test.js - test Ghi/Insert qua 5 thuật toán),
@@ -124,6 +127,12 @@ export default function () {
     serverTrend.add(hash + db);
   }
   sleep(0.1); // nghỉ ngắn hơn Script 1, vì mục tiêu là bắn NHIỀU request/giây liên tục
+}
+export function handleSummary(data) {
+  return {
+    "summary.html": htmlReport(data),
+    stdout: textSummary(data, { indent: " ", enableColors: true }),
+  };
 }
 
 // CÁCH CHẠY:

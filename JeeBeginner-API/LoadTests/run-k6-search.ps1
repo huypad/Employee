@@ -31,8 +31,9 @@ foreach ($f in $existingFiles) {
 
 $nextLan = $maxLan + 1
 $outputFile = "$resultsDir/results_search_${Rate}rps_lan${nextLan}.json"
-
+$dashboardFile = "$resultsDir/dashboard_search_${Rate}rps_lan${nextLan}.html"
 Write-Host "=== Chạy K6: Tìm kiếm nhân viên (Search), Rate=$Rate req/s, Lần thứ $nextLan ===" -ForegroundColor Cyan
 Write-Host "Kết quả sẽ lưu vào: $outputFile`n"
+Write-Host "Dashboard biểu đồ sẽ lưu vào: $dashboardFile`n"
 
-k6 run --env RATE=$Rate --out json=$outputFile test-search.js
+k6 run --env RATE=$Rate --out json=$outputFile --out web-dashboard=export=$dashboardFile test-search.js
