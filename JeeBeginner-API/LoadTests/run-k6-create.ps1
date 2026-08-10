@@ -36,9 +36,10 @@ foreach ($f in $existingFiles) {
 
 $nextLan = $maxLan + 1
 $outputFile = "$resultsDir/results_create_${Rate}rps_lan${nextLan}.json"
-
+$dashboardFile = "$resultsDir/dashboard_create_${Rate}rps_lan${nextLan}.html"
 Write-Host "=== Chạy K6: Tạo nhân viên (Insert), Rate=$Rate req/s, Lần thứ $nextLan ===" -ForegroundColor Cyan
 Write-Host "Kết quả sẽ lưu vào: $outputFile`n"
+Write-Host "Dashboard biểu đồ sẽ lưu vào: $dashboardFile`n"
 Write-Host "NHỚ KIỂM TRA: HOST trong test-create-nhanvien.js đang trỏ đúng DB TEST, không phải DB thật!" -ForegroundColor Yellow
 
-k6 run --env USERNAME=$Username --env PASSWORD=$Password --env RATE=$Rate --out json=$outputFile test-create-nhanvien.js
+k6 run --env USERNAME=$Username --env PASSWORD=$Password --env RATE=$Rate --out json=$outputFile --out web-dashboard=export=$dashboardFile test-create-nhanvien.js
