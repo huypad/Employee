@@ -1,4 +1,4 @@
-# run-k6-create.ps1 - Chạy K6 cho test-create-nhanvien.js (INSERT nhân viên)
+﻿# run-k6-create.ps1 - Chạy K6 cho test-create-nhanvien.js (INSERT nhân viên)
 # và TỰ ĐỘNG đánh số lần chạy (_lan1, _lan2, _lan3...) giống run-k6.ps1.
 #
 # Cách dùng:

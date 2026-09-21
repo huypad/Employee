@@ -1,4 +1,4 @@
-# JeeBeginner — Hướng dẫn chạy toàn bộ hệ thống
+﻿# JeeBeginner — Hướng dẫn chạy toàn bộ hệ thống
 
 Tài liệu này hướng dẫn từ A-Z: setup database, chạy API, chạy giao diện (UI), và chạy 2 công cụ đo hiệu năng (mã hóa, tạo nhân viên, tìm kiếm)
 
